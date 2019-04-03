@@ -1,4 +1,7 @@
-import java.util.*;
+// Daniel Rodriguez
+// April 3, 2019
+// A simple mergeSort function for reference during practice / katas.
+
 public class MergeSort
 {
 	// Public wrapper function
@@ -53,21 +56,15 @@ public class MergeSort
 		System.out.println();
 	}
 
+	// Driver code
 	public static void main(String [] args)
 	{
 		int n = Integer.parseInt(args[0]);
-		if (args.length < 1)
-		{
-			System.out.println("Use an integer > 1");
-			return;
-		}
 		if (n < 1)
 		{
 			System.out.println("Use an integer > 1");
 			return;
 		}
-			
-
 
 		int [] arr = new int[n];
 
