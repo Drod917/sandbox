@@ -34,6 +34,7 @@ public class MergeSort
 		// auxiliary 
 		while (i <= mid || j <= hi)
 		{
+			// Can be simplified with cleverness
 			if (j > hi)
 				aux[k++] = arr[i++];
 			else if (i > mid)
