@@ -3,13 +3,29 @@
 // Professor Montagne
 
 // PREPROCESSOR DIRECTIVES
-#include "vm_impl.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+// CONSTANTS
+#define MAX_STACK_HEIGHT 23
+#define MAX_CODE_LENGTH 500
+#define MAX_LEXI_LEVELS 3
+#define OP_LENGTH 4
+#define REGISTER_FILE_SIZE 8
+
+// STRUCT DEFINITIONS
+typedef struct Instruction
+{
+	int op;	// opcode
+	int r;	// R
+	int l;	// L
+	int m;	// M
+}Instruction;
 
 // FUNCTION PROTOTYPES
 int main(int argc, char **argv);
-void printRF();
 int base(int l, int base);
-void printDataStack();
 void printState();
 Instruction **parseInstructions(char *filename);
 void printVM(FILE *ifp);
@@ -18,10 +34,12 @@ void execute();
 // These are the CPU's registers, and memory
 int RF[REGISTER_FILE_SIZE], stack[MAX_STACK_HEIGHT];
 int running = 1,
+	numInstructions = 1,
 	bp = 0,
 	pc = 0,
 	gp = -1,
 	sp = MAX_STACK_HEIGHT;
+
 Instruction **instructions;
 Instruction *ir;
 
@@ -38,31 +56,20 @@ int base(int l, int base)
 	}
 	return b1;
 }
-void printRF()
-{
-	int i;
-	fprintf(stdout, "\nRF: ");
-	for (i = 0; i < REGISTER_FILE_SIZE; i++)
-		fprintf(stdout, "%d%s", RF[i],
-			   (i < REGISTER_FILE_SIZE) ? " " : "\n");
-	fprintf(stdout, "\n");
-}
-void printDataStack()
-{
-	fprintf(stdout, " ");
-	int i;
-	for (i = 0; i < MAX_STACK_HEIGHT; i++)
-	{
-		fprintf(stdout, "%d%s", stack[i], (i == 5) ? " | " : " ");
-	}
-}
 void printState(char *op)
 {
 	fprintf(stdout, "%-4s  %-3d %-3d %-3d", op, ir->r,
 			ir->l, ir->m);
 	fprintf(stdout, "\t%-3d %-3d %-3d %-3d", gp, pc, bp, sp);
-	printDataStack();
-	printRF();
+	fprintf(stdout, " ");
+	int i;
+	for (i = 0; i < MAX_STACK_HEIGHT; i++)
+		fprintf(stdout, "%d%s", stack[i], (i == 5) ? " | " : " ");
+	fprintf(stdout, "\nRF: ");
+	for (i = 0; i < REGISTER_FILE_SIZE; i++)
+		fprintf(stdout, "%d%s", RF[i],
+			   (i < REGISTER_FILE_SIZE) ? " " : "\n");
+	fprintf(stdout, "\n");
 }
 // Precondition: Instr is a valid instruction
 // Postcondition: The IR is loaded with the instruction
@@ -107,16 +114,15 @@ void execute()
 		case 3:
 			strcpy(op, "lod");
 			if (base(ir->l, bp) == 0)
-			{
 				RF[ir->r] = stack[base(ir->l, bp) + ir->m];
-			}
 			else
 				RF[ir->r] = stack[base(ir->l, bp) - ir->m];
-			fprintf(stdout, "%-4s  %-3d %-3d %-3d", op, ir->r,
-					ir->l, ir->m);
-			fprintf(stdout, "\t%-3d %-3d %-3d %-3d", gp, pc, bp, sp);
-			printDataStack();			
-			printRF();
+			printState(op);
+			// fprintf(stdout, "%-4s  %-3d %-3d %-3d", op, ir->r,
+			// 		ir->l, ir->m);
+			// fprintf(stdout, "\t%-3d %-3d %-3d %-3d", gp, pc, bp, sp);
+			// printDataStack();			
+			// printRF();
 			break;
 		// STO
 		case 4:
@@ -274,49 +280,11 @@ void execute()
 			break;
 	}
 	printf("\n");
-	//printVM();
 	free(op);
 	return;
 }
-void checkFile(char *filename)
-{
-	// Open the input file, check if it exists
-	FILE *ifp = fopen(filename, "r");
-	if (ifp == NULL)
-	{
-		fprintf(stderr, "FILENAME '%s' NOT FOUND\n", filename);
-		exit(0);
-	}
-	fclose(ifp);
-}
-// Initialize the VM's registers, RF, stack
-void initVM(FILE *ifp, int numInstructions)
-{
-	ir = malloc(sizeof(Instruction));
-	int i;
-	for (i = 0; i < REGISTER_FILE_SIZE; i++)
-		RF[i] = 0;
-	for (i = 0; i < MAX_STACK_HEIGHT; i++)
-		stack[i] = 0;
-	// Fill dynamically allocated instructions
-	int opI;
-	for (i = 0; i < numInstructions; i++)
-	{
-		Instruction *newInstr = malloc(sizeof(Instruction));
-		fscanf(ifp, "%d", &opI);
-		newInstr->op = opI;
-		fscanf(ifp, "%d", &opI);
-		newInstr->r = opI;
-		fscanf(ifp, "%d", &opI);
-		newInstr->l = opI;
-		fscanf(ifp, "%d", &opI);
-		newInstr->m = opI;
-		instructions[i] = newInstr;
-	}
-	fclose(ifp);
-}
 // Prints the program instructions in assembly
-void printInAssembly(int numInstructions)
+void printInAssembly()
 {
 	char *opC = malloc(sizeof(char) * OP_LENGTH);
 	if (opC == NULL)
@@ -406,8 +374,66 @@ void printInAssembly(int numInstructions)
 		fprintf(stdout, "%-3d %-4s  %-3d %-3d %-3d\n", i, opC,
 				instructions[i]->r, instructions[i]->l, instructions[i]->m);
 	}
+	free(opC);
 }
+void checkFile(char *filename)
+{
+	// Open the input file, check if it exists
+	FILE *ifp = fopen(filename, "r");
+	if (ifp == NULL)
+	{
+		fprintf(stderr, "FILENAME '%s' NOT FOUND\n", filename);
+		exit(0);
+	}
+	fclose(ifp);
+}
+// Initialize the VM's registers, RF, stack
+void initVM(FILE *ifp)
+{
+	ir = malloc(sizeof(Instruction));
+	int i;
+	for (i = 0; i < REGISTER_FILE_SIZE; i++)
+		RF[i] = 0;
+	for (i = 0; i < MAX_STACK_HEIGHT; i++)
+		stack[i] = 0;
+	
+	// Fill dynamically allocated instructions
+	int opI;
+	for (i = 0; i < numInstructions; i++)
+	{
+		Instruction *newInstr = malloc(sizeof(Instruction));
+		fscanf(ifp, "%d", &opI);
+		newInstr->op = opI;
+		fscanf(ifp, "%d", &opI);
+		newInstr->r = opI;
+		fscanf(ifp, "%d", &opI);
+		newInstr->l = opI;
+		fscanf(ifp, "%d", &opI);
+		newInstr->m = opI;
+		instructions[i] = newInstr;
+	}
+	fclose(ifp);
+	printInAssembly();
 
+	// Print the initial state of the machine
+	fprintf(stdout, "\n\t\t\tgp  pc  bp  sp  data\t      stack\n"
+			"Initial values\t\t%d  %d   %d   %d  ", gp, pc, bp, sp);
+	for (i = 0; i < MAX_STACK_HEIGHT; i++)
+		fprintf(stdout, "%d%s", stack[i], (i == 5) ? " | " : " ");
+	fprintf(stdout, "\nRF: ");
+	for (i = 0; i < REGISTER_FILE_SIZE; i++)
+		fprintf(stdout, "%d%s", RF[i],
+			   (i < REGISTER_FILE_SIZE) ? " " : "\n");
+	fprintf(stdout, "\n\n");
+}
+void cleanupVM()
+{
+	free(ir);
+	int i;
+	for (i = 0; i < numInstructions; i++)
+		free(instructions[i]);
+	free(instructions);
+}
 int main(int argc, char **argv)
 {
 	// Improper syntax detected
@@ -419,11 +445,10 @@ int main(int argc, char **argv)
 
 	// Check if file exists / is valid
 	checkFile(argv[1]);
+
 	// Open the file, gather number of instructions from the input file
 	FILE *ifp = fopen(argv[1], "r");
 
-	// Off by 1 to balance initial fgetc() call
-	int numInstructions = 1;
 	char c;
 	for (c = fgetc(ifp); !feof(ifp); c = fgetc(ifp))
 	{
@@ -435,14 +460,7 @@ int main(int argc, char **argv)
 
 	// Reset file pointer to fill the dynamically allocated instructions
 	ifp = fopen(argv[1], "r");
-	initVM(ifp, numInstructions);
-	printInAssembly(numInstructions);
-
-	fprintf(stdout, "\n\t\t\tgp  pc  bp  sp  data\t      stack\n"
-			"Initial values\t\t%d  %d   %d   %d ", gp, pc, bp, sp);
-	printDataStack();
-	printRF();
-	printf("\n");
+	initVM(ifp);
 	
 	// VM IS READY, BEGIN FETCH / EXECUTE CYCLE
 	while (running)
@@ -451,5 +469,6 @@ int main(int argc, char **argv)
 		fetch(instructions[pc++]);
 		execute(ir);
 	}
+	cleanupVM();
 	return 0;
 }
