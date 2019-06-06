@@ -1,0 +1,17 @@
+Daniel Rodriguez (NID da268008)
+COP3402 (Spring)
+Professor Montagne Homework #1
+
+Welcome! Here are the build instructions.
+
+Compile with gcc:
+
+gcc vm_impl.c -o VM
+
+To run the test program:
+
+./VM test_input
+
+To run any other (assembly) program
+
+./VM PROGRAM_NAME
