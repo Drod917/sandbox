@@ -39,7 +39,6 @@ int running = 1,
 	pc = 0,
 	gp = -1,
 	sp = MAX_STACK_HEIGHT;
-
 Instruction **instructions;
 Instruction *ir;
 
@@ -78,7 +77,8 @@ void fetch(Instruction *instr)
 	if (instr == NULL)
 	{
 		fprintf(stderr, "NULL POINTER EXCEPTION WHILE FETCHING\n");
-		return;
+		exit(0);
+		//return;
 	}
 	ir->op = instr->op;
 	ir->r = instr->r;
@@ -93,13 +93,15 @@ void execute()
 	char *op = malloc(sizeof(char) * OP_LENGTH);
 	if (op == NULL)
 		return;
-
 	switch (ir->op)
 	{
 		// LIT
 		case 1:
+			// Ex:
+			// Print op
 			strcpy(op, "lit");
 			RF[ir->r] = ir->m;
+			// Print state
 			printState(op);
 			break;
 		// RTN
@@ -118,11 +120,6 @@ void execute()
 			else
 				RF[ir->r] = stack[base(ir->l, bp) - ir->m];
 			printState(op);
-			// fprintf(stdout, "%-4s  %-3d %-3d %-3d", op, ir->r,
-			// 		ir->l, ir->m);
-			// fprintf(stdout, "\t%-3d %-3d %-3d %-3d", gp, pc, bp, sp);
-			// printDataStack();			
-			// printRF();
 			break;
 		// STO
 		case 4:
@@ -167,10 +164,7 @@ void execute()
 			break;
 		// JMP
 		case 7:
-			// Ex:
-			// Print op
 			strcpy(op, "jmp");
-			// Print state
 			pc = ir->m;
 			printState(op);
 			break;
@@ -396,7 +390,7 @@ void initVM(FILE *ifp)
 		RF[i] = 0;
 	for (i = 0; i < MAX_STACK_HEIGHT; i++)
 		stack[i] = 0;
-	
+
 	// Fill dynamically allocated instructions
 	int opI;
 	for (i = 0; i < numInstructions; i++)
