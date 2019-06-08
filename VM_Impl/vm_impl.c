@@ -138,7 +138,8 @@ void execute()
 			if (sp - 4 <= gp)
 			{
 				fprintf(stderr, "STACK OVERFLOW\n");
-				exit(0);
+                return;
+				//exit(0);
 			}
 			stack[sp - 1] = 0;				 // return val
 			stack[sp - 2] = base(ir->l, bp); // static link
@@ -154,7 +155,8 @@ void execute()
 			if (sp - ir->m <= gp)
 			{
 				fprintf(stderr, "STACK OVERFLOW\n");
-				exit(0);
+				//exit(0);
+                return;
 			}
 			if (bp == 0)
 				gp = gp + ir->m;
@@ -179,7 +181,7 @@ void execute()
 		case 9:
 			strcpy(op, "sio");
 			printState(op);
-			fprintf(stdout, "\n%d", RF[ir->r]);
+			fprintf(stdout, "\n%d\n", RF[ir->l]);
 			break;
 		// SIO R, 0, 2
 		case 10:
