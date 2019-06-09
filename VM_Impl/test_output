@@ -17,8 +17,8 @@ Line OP   R   L   M
 15  cal   0   0   2  
 16  sio   0   0   3  
 
-						gp  pc  bp  sp  data	      stack
-Initial values			-1  0   0   23  0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+			gp  pc  bp  sp  data	      stack
+Initial values		-1  0   0   23  0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
 RF: 0 0 0 0 0 0 0 0 
 
 0  jmp   0   0   10 	-1  10  0   23  0 0 0 0 0 0 | 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
