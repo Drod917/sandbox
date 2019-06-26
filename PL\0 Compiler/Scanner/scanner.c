@@ -1,172 +1,246 @@
-// Daniel Rodriguez (NID da268008)
-// COP3402 (Summer)
+// Daniel Rodriguez
 // Professor Montagne
+// COP 3402 Spring 2019 (NID da268008)
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "scanner.h"
 
-#define BUFFER_LEN 16
-
-typedef enum
+Token **scan(FILE *ifp)
 {
-	nulsym = 1, identsym = 2, numbersym = 3, plussym = 4, minussym = 5, multsym = 6,
-	slashsym = 7, oddsym = 8, eqlsym = 9, neqsym = 10, lessym = 11, leqsym = 12,
-	gtrsym = 13, geqsym = 14, lparentsym = 15, rparentsym = 16, commasym = 17,
-	semicolonsym = 18, periodsym = 19, becomessym = 20, beginsym = 21, endsym = 22,
-	ifsym = 23, thensym = 24, whilesym = 25, dosym = 26, callsym = 27, constsym = 28,
-	varsym = 29, procsym = 30, writesym = 31, readsym = 32, elsesym = 33
-}token_type;
+	char c;
+	Token **tokenList = allocTokenList();
 
-typedef struct Token
-{
-	char *identifier;
-	token_type tokType;
-	struct Token *next;
-}Token;
+	c = fgetc(ifp);
 
-typedef struct TokenList
-{
-	Token *head, *tail;
-}TokenList;
-
-
-FILE *ifp;
-TokenList *tokens;
-
-Token * tokenize(char *currStr)
-{
-	if (currStr == NULL)
+	while (1)
 	{
-		fprintf(stderr, "NULL TOKEN STR %s, EXITING", currStr);
-		exit(0);
+		char buffer[MAX_IDENT_LENGTH];
+		int bufferIndex = 0;
+
+		if (tokenIndex > MAX_TOKENS)
+		{
+			fprintf(stderr, "MAX TOKEN OVERFLOW\n");
+			exit(0);
+		}
+
+		if (isalpha(c) || c == '_')
+		{
+			// uncomment to allow lexeme length overflow, splitting up tokens
+			// instead of crashing.
+			while (isalpha(c) || //&& bufferIndex < MAX_IDENT_LENGTH - 1) ||
+					c == '_' || //&& bufferIndex < MAX_IDENT_LENGTH - 1) ||
+					isdigit(c)) //&& bufferIndex < MAX_IDENT_LENGTH - 1))
+			{
+
+				buffer[bufferIndex++] = c;
+				c = fgetc(ifp);
+			}
+
+			buffer[bufferIndex++] = '\0';
+			int reservedType = isReserved(buffer);
+
+			if (reservedType != -1)
+			{
+				tokenList[tokenIndex++] = newToken(reservedType);
+			}
+			else
+				tokenList[tokenIndex++] = newIdent(identsym, buffer);
+		}
+		else if (isdigit(c))
+		{
+			while (isdigit(c) )//&& bufferIndex < MAX_IDENT_LENGTH - 1)
+			{
+				buffer[bufferIndex++] = c;
+				c = fgetc(ifp);
+				if (isalpha(c))
+				{
+					fprintf(stderr, "A token's name begins with a number! Exiting...\n");
+					exit(0);
+				}
+			}
+
+			buffer[bufferIndex] = '\0';
+			tokenList[tokenIndex++] = newNumber(numbersym, atoi(buffer));
+		}
+		else if (ispunct(c))
+		{
+			// // comment check
+			// if ('/' == c)
+			// {
+			// 	c = fgetc(ifp);
+			// 	if (c != '*')
+			// 	{
+			// 		fprintf(stderr, "PROPER COMMENT SYNTAX: /* <comment> */\n");
+			// 		exit(0);
+			// 	}
+			// 	// c is *
+			// 	else
+			// 	{
+			// 		c = fgetc(ifp);
+			// 		while (c != '*')
+			// 		{
+			// 			c = fgetc(ifp);
+			// 		}
+
+			// 		c = fgetc(ifp);
+
+			// 		if (c != '/')
+			// 		{
+			// 			fprintf(stderr, "PROPER COMMENT SYNTAX: /* <comment> */\n");
+			// 			exit(0);
+			// 		}
+			// 	}
+			// }
+			if (c == ':')
+			{
+				c = fgetc(ifp);
+				if (c == '=')
+				{
+					tokenList[tokenIndex++] = newToken(becomessym);
+					c = fgetc(ifp);
+				}
+			}
+			else if (c == '+')
+			{
+				tokenList[tokenIndex++] = newToken(plussym);
+				c = fgetc(ifp);
+			}
+			else if (c == '-')
+			{
+				tokenList[tokenIndex++] = newToken(minussym);
+				c = fgetc(ifp);
+			}
+			else if (c == '*')
+			{
+				tokenList[tokenIndex++] = newToken(multsym);
+				c = fgetc(ifp);
+			}
+			else if (c == '/')
+			{
+				tokenList[tokenIndex++] = newToken(slashsym);
+				c = fgetc(ifp);
+			}
+			else if (c == '%')
+			{
+				tokenList[tokenIndex++] = newToken(oddsym);
+				c = fgetc(ifp);
+			}
+			else if (c == '(')
+			{
+				tokenList[tokenIndex++] = newToken(lparentsym);
+				c = fgetc(ifp);
+			}
+			else if (c == ')')
+			{
+				tokenList[tokenIndex++] = newToken(rparentsym);
+				c = fgetc(ifp);
+			}
+			else if (c == '<')
+			{
+				c = fgetc(ifp);
+				if (c == '=')
+				{
+					tokenList[tokenIndex++] = newToken(leqsym);
+					c = fgetc(ifp);
+				}
+				else if (c == '>')
+				{
+					tokenList[tokenIndex++] = newToken(neqsym);
+					c = fgetc(ifp);
+				}
+				else
+					tokenList[tokenIndex++] = newToken(lessym);
+			}
+			else if (c == '>')
+			{
+				c = fgetc(ifp);
+				if (c == '=')
+				{
+					tokenList[tokenIndex++] = newToken(geqsym);
+					c = fgetc(ifp);
+				}
+				else
+					tokenList[tokenIndex++] = newToken(gtrsym);
+			}
+			else if (c == '=')
+			{
+				tokenList[tokenIndex++] = newToken(eqlsym);
+				c = fgetc(ifp);
+			}
+			else if (c == ',')
+			{
+				tokenList[tokenIndex++] = newToken(commasym);
+				c = fgetc(ifp);
+			}
+			else if (c == ';')
+			{
+				tokenList[tokenIndex++] = newToken(semicolonsym);
+				c = fgetc(ifp);
+			}
+			else if (c == '.')
+			{
+				tokenList[tokenIndex++] = newToken(periodsym);
+				c = fgetc(ifp);
+			}
+			else
+			{
+				fprintf(stderr, "TOKEN  %c NOT FOUND\n", c);
+				exit(0);
+			}
+		}
+		else if (isspace(c))
+			c = fgetc(ifp);
+		else if (c == EOF)
+		{
+			if (debug)
+			{
+				fprintf(stdout,"\n...End of file reached...\n\n");
+			}
+			break;
+		}
 	}
 
-	Token *newToken = malloc(sizeof(Token));
-	if (newToken == NULL)
-	{
-		fprintf(stderr, "NEWTOKEN CREATION FAILED");
-		exit(0);
-	}
-
-	newToken->identifier = currStr;
-	// const
-	if (strcmp(currStr, "const") == 0)
-	{
-		newToken->tokType = constsym;
-	}
-	// var
-	else if (strcmp(currStr, "var") == 0)
-	{
-
-	}
-	// procedure
-	else if (strcmp(currStr, "procedure") == 0)
-	{
-
-	}
-	// call
-	else if (strcmp(currStr, "call") == 0)
-	{
-
-	}
-	// begin
-	else if (strcmp(currStr, "begin") == 0)
-	{
-
-	}
-	// end
-	else if (strcmp(currStr, "end") == 0)
-	{
-
-	}
-	// if
-	else if (strcmp(currStr, "if") == 0)
-	{
-
-	}
-	// then
-	else if (strcmp(currStr, "then") == 0)
-	{
-
-	}
-	// else
-	else if (strcmp(currStr, "else") == 0)
-	{
-
-	}
-	// while
-	else if (strcmp(currStr, "while") == 0)
-	{
-
-	}
-	// do
-	else if (strcmp(currStr, "do") == 0)
-	{
-
-	}
-	// read
-	else if (strcmp(currStr, "read") == 0)
-	{
-
-	}
-	// write
-	else if (strcmp(currStr, "write") == 0)
-	{
-
-	}
+	return tokenList;
 }
-int main(int argc, char **argv)
+
+void init(char *filename)
 {
-	// Improper syntax detected
-	if (argc != 2)
-	{
-		fprintf(stderr, "CORRECT SYNTAX: 'scan <input_file.txt>'\n");
-		return 0;
-	}
-	ifp = fopen(argv[1], "r");
-	// File not found
+	ifp = fopen(filename, "r");
 	if (ifp == NULL)
 	{
-		fprintf(stderr, "FILE '%s' NOT FOUND\n", argv[1]);
-		return 0;
+		fprintf(stderr, "FILE %s NOT FOUND\n", filename);
+		exit(0);
 	}
-	tokens = malloc(sizeof(TokenList));
-	if (tokens == NULL)
+
+	char c;
+	fprintf(stdout, "\nSource program:\n\n");
+	while (c != EOF)
 	{
-		fprintf(stderr, "TOKENLIST CREATION FAILED\n");
-		return 0;
+		fprintf(stdout, "%c", c);
+		c = fgetc(ifp);
 	}
+	fprintf(stdout, "\n");
 
-
-
-
-
-
-	// C is first word in file
-	char *currStr = malloc(sizeof(char) * BUFFER_LEN);
-	fscanf(ifp, "%s", currStr);
-	Token *headToken = tokenize(currStr);
-	headToken->next = NULL;
-	tokens->head = headToken;
-	tokens->tail = headToken;
-	// while (!feof(ifp))
-	// {
-	// 	printf("%s",currStr);
-	// 	fscanf(ifp, "%s", currStr);
-	// }
-	if (feof(ifp))
-		fprintf(stdout, "End of file reached\n");
-	fprintf(stdout, "%s\t%d\n", tokens->head->identifier,
-			tokens->head->tokType);
-	return 0;
+	fclose(ifp);
+	ifp = fopen(filename, "r");
+	if (ifp == NULL)
+	{
+		fprintf(stderr, "FILE %s NOT FOUND\n", filename);
+		exit(0);
+	}
 }
 
-/*
-Write source
-Preprocess source
-Compile source -> assembly code
-Assembler assembly -> object code
-Linker linkers obj files -> executable
-Loader executes executable, creates environment to run
-*/
+int main(int argc, char **argv)
+{
+	if (argc < 2)
+	{
+		fprintf(stderr, "PROPER SYNTAX: ./scan <filename>\n");
+		exit(0);
+	}
+
+	init(argv[1]);
+
+	tokenIndex = 0;
+	Token **tokenList = scan(ifp);
+	printTokenList(tokenList);
+	return 0;
+}
