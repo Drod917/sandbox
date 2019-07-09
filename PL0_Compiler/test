@@ -1,0 +1,6 @@
+var x , y;
+begin
+	x := 3;
+	y := 4;
+	z := 4;
+end.
