@@ -213,6 +213,9 @@ void initScanner(char *filename)
 
 	char c;
 	fprintf(stdout, "\nSource program:\n\n");
+
+	// As of raspbian stretch, fgetc() returns 255 instead of expected -1
+	// use -fsigned-char when compiling with gcc to avoid infinite looping
 	while (c != EOF)
 	{
 		fprintf(stdout, "%c", c);
