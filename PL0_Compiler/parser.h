@@ -6,15 +6,11 @@
 
 struct Symbol **symbolTable;
 struct Program;
-struct Block;
-struct FuncDecl;
-struct TypedIdent;
-struct TypedIdentList;
-struct FuncDeclList;
-struct Statement;
-struct StatementList;
-struct Expression;
-struct ExpressionList;
+struct varDecl;
+struct procDecl;
+struct statement;
+void advanceToken();
+int ensureType(TokenType type);
 
 typedef struct Symbol
 {
@@ -26,29 +22,57 @@ typedef struct Symbol
 	int mark;		// to indicate that code has been generated already for a block
 }Symbol;
 
-typedef struct Program
-{
-	struct Block *block;
-}Program;
-
-typedef struct Block
-{
-	struct ConstDecl *constDecls;
-	struct VarDecl *varDecls;
-	struct Statement **statementList;
-}Block;
-
-typedef struct Statement
-{
-
-}Statement;
-
-void advanceToken();
 Symbol *newSymbol(Token *currToken);
 Token **tokenList;
 Token *currToken;
 int tokenIndex;
 Symbol **symbolTable;
+
+
+void constDecls(void)
+{
+	advanceToken();
+
+	do
+	{
+		if (!ensureType(identsym))
+		{
+			// ERROR
+		}
+		advanceToken();
+		if (!ensureType(eqlsym))
+		{
+			// ERROR
+		}
+		advanceToken();
+		if (!ensureType(numbersym))
+		{
+			// ERROR 
+		}
+
+		// ENTER SYMBOL INTO SYMBOL TABLE
+		// enter(constant, ident, number);
+		advanceToken();
+	}
+	while (ensureType(commasym));
+
+	if (!ensureType(semicolonsym))
+	{
+		// ERROR
+	}
+	advanceToken();
+}
+
+void varDecls(void)
+{
+
+}
+
+void procDecls(void)
+{
+
+}
+
 
 void advanceToken()
 {
@@ -97,13 +121,34 @@ Symbol *newSymbol(Token *currToken)
 	}
 }
 
-int ensureType(Token *token, TokenType type)
+void enter(Token *currToken)
 {
-	if (token == NULL)
+	if (currToken == NULL)
+	{
+		printf("NULL POINTER ON SYMBOL TABLE INSERTION.\n");
+		exit(0);
+	}
+	if (ensureType(constsym))
+	{
+		// enter const symbol to table
+	}
+	else if (ensureType(varsym))
+	{
+		// enter var symbol to table
+	}
+	else if (ensureType(procsym))
+	{
+		// enter proc symbol to table
+	}
+}
+
+int ensureType(TokenType type)
+{
+	if (currToken == NULL)
 	{
 		return 0;
 	}
-	if (token->type != type)
+	if (currToken->type != type)
 		return 0;
 
 	return 1;

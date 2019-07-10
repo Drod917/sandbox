@@ -21,15 +21,9 @@ Symbol **parse(Token **tokenList)
 	// GET(TOKEN)
 	currToken = tokenList[tokenIndex];
 
-	Program *newProgram = malloc(sizeof(Program));
-	if (newProgram == NULL)
-	{
-		printf("NULL POINTER ON PROGRAM CREATION\n");
-		exit(0);
-	}
 	block();
 
-	if (!ensureType(currToken, periodsym))
+	if (!ensureType(periodsym))
 	{
 		// ERROR
 		printf("Period expected.\n");
@@ -39,27 +33,27 @@ Symbol **parse(Token **tokenList)
 
 void block(void)
 {
-	// const
-	if (ensureType(currToken, constsym))
+	// constdecl
+	if (ensureType(constsym))
 	{
 		do
 		{
 			advanceToken();
-			if (!ensureType(currToken, identsym))
+			if (!ensureType(identsym))
 			{
 				// ERROR
 				printf("Error number 4, const must be followed by an identifier.\n");
 				exit(0);
 			}
 			advanceToken();
-			if (!ensureType(currToken, eqlsym))
+			if (!ensureType(eqlsym))
 			{
 				// ERROR
 				printf("Error number 3, identifier must be followed by =\n");
 				exit(0);
 			}
 			advanceToken();
-			if (!ensureType(currToken, numbersym))
+			if (!ensureType(numbersym))
 			{
 				// ERROR
 				printf("Error number 2, = must be followed by a number.\n");
@@ -67,9 +61,9 @@ void block(void)
 			}
 			advanceToken();
 		}
-		while (ensureType(currToken, commasym));
+		while (ensureType(commasym));
 
-		if (!ensureType(currToken, semicolonsym))
+		if (!ensureType(semicolonsym))
 		{
 			// ERROR
 			printf("Error number 5, semicolon or comma missing.\n");
@@ -78,13 +72,13 @@ void block(void)
 		advanceToken();
 	}
 
-	// var
-	else if (ensureType(currToken, varsym))
+	// vardecl
+	else if (ensureType(varsym))
 	{
 		do
 		{
 			advanceToken();
-			if (!ensureType(currToken, identsym))
+			if (!ensureType(identsym))
 			{
 				// ERROR
 				printf("Error number 4, var must be followed by an identifier.\n");
@@ -92,9 +86,9 @@ void block(void)
 			}
 			advanceToken();
 		}
-		while (ensureType(currToken, commasym));
+		while (ensureType(commasym));
 
-		if (!ensureType(currToken, semicolonsym))
+		if (!ensureType(semicolonsym))
 		{
 			// ERROR
 			printf("Error number 5, semicolon or comma missing.\n");
@@ -103,17 +97,17 @@ void block(void)
 		advanceToken();
 	}
 	// procedure
-	else if(ensureType(currToken, procsym))
+	else if(ensureType(procsym))
 	{
 		advanceToken();
-		if (!ensureType(currToken, identsym))
+		if (!ensureType(identsym))
 		{
 			// ERROR
 			printf("Error number 11, undeclared identifier.\n");
 			exit(0);
 		}
 		advanceToken();
-		if (!ensureType(currToken, semicolonsym))
+		if (!ensureType(semicolonsym))
 		{
 			// ERROR
 			printf("Error number 5, semicolon or comma missing.\n");
@@ -122,7 +116,7 @@ void block(void)
 		advanceToken();
 		block();
 
-		if (!ensureType(currToken, semicolonsym))
+		if (!ensureType(semicolonsym))
 		{
 			// ERROR
 			printf("Error number 5, semicolon or comma missing.\n");
@@ -136,10 +130,10 @@ void block(void)
 void statement(void)
 {
 	// identifier
-	if (ensureType(currToken, identsym))
+	if (ensureType(identsym))
 	{
 		advanceToken();
-		if (!ensureType(currToken, becomessym))
+		if (!ensureType(becomessym))
 		{
 			// ERROR
 			printf("Assignment operator expected.\n");
@@ -148,7 +142,7 @@ void statement(void)
 		advanceToken();
 		expression();
 
-		if (!ensureType(currToken, semicolonsym))
+		if (!ensureType(semicolonsym))
 		{
 			// ERROR
 			printf("Error number 5, semicolon or comma missing.\n");
@@ -156,10 +150,10 @@ void statement(void)
 		}
 	}
 	// call
-	else if (ensureType(currToken, callsym))
+	else if (ensureType(callsym))
 	{
 		advanceToken();
-		if (!ensureType(currToken, identsym))
+		if (!ensureType(identsym))
 		{
 			// ERROR
 			printf("Error number 14, call must be followed by an identifier.\n");
@@ -168,18 +162,18 @@ void statement(void)
 		advanceToken();
 	}
 	// begin
-	else if (ensureType(currToken, beginsym))
+	else if (ensureType(beginsym))
 	{
 		advanceToken();
 		statement();
 
-		while (ensureType(currToken, semicolonsym))
+		while (ensureType(semicolonsym))
 		{
 			advanceToken();
 			statement();
 		}
 
-		if (!ensureType(currToken, endsym))
+		if (!ensureType(endsym))
 		{
 			// ERROR
 			printf("Error number 7, statement expected.\n");
@@ -188,12 +182,12 @@ void statement(void)
 		advanceToken();
 	}
 	// if
-	else if (ensureType(currToken, ifsym))
+	else if (ensureType(ifsym))
 	{
 		advanceToken();
 		condition();
 
-		if (!ensureType(currToken, thensym))
+		if (!ensureType(thensym))
 		{
 			// ERROR
 			printf("Error number 16, then expected.\n");
@@ -203,12 +197,12 @@ void statement(void)
 		statement();
 	}
 	// while
-	else if (ensureType(currToken, whilesym))
+	else if (ensureType(whilesym))
 	{
 		advanceToken();
 		condition();
 
-		if (!ensureType(currToken, dosym))
+		if (!ensureType(dosym))
 		{
 			// ERROR
 			printf("Error number 18, do expected.\n");
@@ -221,7 +215,7 @@ void statement(void)
 void condition(void)
 {
 	// odd
-	if (ensureType(currToken, oddsym))
+	if (ensureType(oddsym))
 	{
 		advanceToken();
 		expression();
@@ -239,10 +233,10 @@ void condition(void)
 void expression(void)
 {
 	// plus or minus
-	if (ensureType(currToken, plussym) || ensureType(currToken, minussym))
+	if (ensureType(plussym) || ensureType(minussym))
 		advanceToken();
 	term();
-	while (ensureType(currToken, plussym) || ensureType(currToken, minussym))
+	while (ensureType(plussym) || ensureType(minussym))
 	{
 		advanceToken();
 		term();
@@ -251,7 +245,7 @@ void expression(void)
 void term(void)
 {
 	factor();
-	while (ensureType(currToken, multsym) || ensureType(currToken, slashsym))
+	while (ensureType(multsym) || ensureType(slashsym))
 	{
 		advanceToken();
 		factor();
@@ -259,16 +253,16 @@ void term(void)
 }
 void factor(void)
 {
-	if (ensureType(currToken, identsym))
+	if (ensureType(identsym))
 		advanceToken();
-	else if (ensureType(currToken, numbersym))
+	else if (ensureType(numbersym))
 		advanceToken();
-	else if (ensureType(currToken, lparentsym))
+	else if (ensureType(lparentsym))
 	{
 		advanceToken();
 		expression();
 
-		if (!ensureType(currToken, rparentsym))
+		if (!ensureType(rparentsym))
 		{
 			// ERROR
 			printf("Error number 22, right parenthesis missing.\n");
