@@ -430,7 +430,7 @@ void cleanupVM()
 		free(instructions[i]);
 	free(instructions);
 }
-int main(int argc, char **argv)
+int vm(int argc, char **argv)
 {
 	// Improper syntax detected
 	if (argc != 2)

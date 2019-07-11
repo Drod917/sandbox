@@ -1,7 +1,8 @@
-const x = 3;
-var x, y;
+var x, w;
 begin
-	x := 3;
-	y := 4;
-	z := 4;
+	x := 4;
+	if w > x then
+		w := w + 1;
+	else
+		w := x;
 end.

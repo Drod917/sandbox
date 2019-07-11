@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "codegen.h"
 
 Symbol **parse(Token **tokenList);
 void program(void);
@@ -19,6 +20,7 @@ int address = 0;
 // syntactically correct.
 Symbol **parse(Token **tokenList)
 {
+	// Initiate
 	if (tokenList == NULL)
 	{
 		printf("TokenList is NULL\n");
@@ -32,6 +34,8 @@ Symbol **parse(Token **tokenList)
 		printf("NULL POINTER ON SYMBOL TABLE CREATION.\n");
 		exit(0);
 	}
+
+	code = malloc(sizeof(Instruction *) * CODE_SIZE);
 
 	// GET(TOKEN)
 	advanceToken();
@@ -278,10 +282,16 @@ void condition(void)
 }
 void expression(void)
 {
+	TokenType addop;
 	// plus or minus
 	if (ensureType(plussym) || ensureType(minussym))
+	{
+		addop = currToken->type;
 		advanceToken();
-	term();
+		term();
+		if (addop == minussym);
+			//emit(OPR, 0, OPR_NEG);	// negate
+	}
 	while (ensureType(plussym) || ensureType(minussym))
 	{
 		advanceToken();
