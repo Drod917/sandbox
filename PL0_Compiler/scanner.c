@@ -231,7 +231,6 @@ void initScanner(char *filename)
 		exit(0);
 	}
 
-	tokenIndex = 0;
 }
 
 // int main(int argc, char **argv)

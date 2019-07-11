@@ -4,12 +4,9 @@
 
 #define MAX_SYMBOL_TABLE_SIZE 1024
 
+struct Symbol *newSymbol(Token *currToken);
 struct Symbol **symbolTable;
-struct Program;
-struct varDecl;
-struct procDecl;
-struct statement;
-void advanceToken();
+void advanceToken(void);
 int ensureType(TokenType type);
 
 typedef struct Symbol
@@ -22,57 +19,9 @@ typedef struct Symbol
 	int mark;		// to indicate that code has been generated already for a block
 }Symbol;
 
-Symbol *newSymbol(Token *currToken);
 Token **tokenList;
 Token *currToken;
-int tokenIndex;
 Symbol **symbolTable;
-
-
-void constDecls(void)
-{
-	advanceToken();
-
-	do
-	{
-		if (!ensureType(identsym))
-		{
-			// ERROR
-		}
-		advanceToken();
-		if (!ensureType(eqlsym))
-		{
-			// ERROR
-		}
-		advanceToken();
-		if (!ensureType(numbersym))
-		{
-			// ERROR 
-		}
-
-		// ENTER SYMBOL INTO SYMBOL TABLE
-		// enter(constant, ident, number);
-		advanceToken();
-	}
-	while (ensureType(commasym));
-
-	if (!ensureType(semicolonsym))
-	{
-		// ERROR
-	}
-	advanceToken();
-}
-
-void varDecls(void)
-{
-
-}
-
-void procDecls(void)
-{
-
-}
-
 
 void advanceToken()
 {
@@ -80,7 +29,7 @@ void advanceToken()
 	currToken = tokenList[tokenIndex];
 	
 	// DEBUG
-	//
+	
 	// if (currToken == NULL)
 	// {
 	// 	printf("\nCURRTOKEN IS NOW NULL\n");
@@ -100,6 +49,7 @@ void advanceToken()
 
 }
 
+// TODO
 Symbol *newSymbol(Token *currToken)
 {
 	if (currToken == NULL)

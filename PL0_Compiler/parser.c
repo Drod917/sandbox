@@ -1,7 +1,11 @@
 #include "parser.h"
 
 Symbol **parse(Token **tokenList);
+void program(void);
 void block(void);
+void constDecls(void);
+void varDecls(void);
+void procDecls(void);
 void statement(void);
 void condition(void);
 void expression(void);
@@ -17,10 +21,9 @@ Symbol **parse(Token **tokenList)
 		printf("TokenList is NULL\n");
 		exit(0);
 	}
-	tokenIndex = 0;
+	tokenIndex = -1;
 	// GET(TOKEN)
-	currToken = tokenList[tokenIndex];
-
+	advanceToken();
 	block();
 
 	if (!ensureType(periodsym))
@@ -30,38 +33,12 @@ Symbol **parse(Token **tokenList)
 		exit(0);
 	}
 }
-
 void block(void)
 {
 	// constdecl
 	if (ensureType(constsym))
 	{
-		do
-		{
-			advanceToken();
-			if (!ensureType(identsym))
-			{
-				// ERROR
-				printf("Error number 4, const must be followed by an identifier.\n");
-				exit(0);
-			}
-			advanceToken();
-			if (!ensureType(eqlsym))
-			{
-				// ERROR
-				printf("Error number 3, identifier must be followed by =\n");
-				exit(0);
-			}
-			advanceToken();
-			if (!ensureType(numbersym))
-			{
-				// ERROR
-				printf("Error number 2, = must be followed by a number.\n");
-				exit(0);
-			}
-			advanceToken();
-		}
-		while (ensureType(commasym));
+		constDecls();
 
 		if (!ensureType(semicolonsym))
 		{
@@ -73,20 +50,9 @@ void block(void)
 	}
 
 	// vardecl
-	else if (ensureType(varsym))
+	if (ensureType(varsym))
 	{
-		do
-		{
-			advanceToken();
-			if (!ensureType(identsym))
-			{
-				// ERROR
-				printf("Error number 4, var must be followed by an identifier.\n");
-				exit(0);
-			}
-			advanceToken();
-		}
-		while (ensureType(commasym));
+		varDecls();
 
 		if (!ensureType(semicolonsym))
 		{
@@ -97,25 +63,10 @@ void block(void)
 		advanceToken();
 	}
 	// procedure
-	else if(ensureType(procsym))
+	if(ensureType(procsym))
 	{
-		advanceToken();
-		if (!ensureType(identsym))
-		{
-			// ERROR
-			printf("Error number 11, undeclared identifier.\n");
-			exit(0);
-		}
-		advanceToken();
-		if (!ensureType(semicolonsym))
-		{
-			// ERROR
-			printf("Error number 5, semicolon or comma missing.\n");
-			exit(0);
-		}
-		advanceToken();
-		block();
-
+		procDecls();
+		
 		if (!ensureType(semicolonsym))
 		{
 			// ERROR
@@ -124,9 +75,70 @@ void block(void)
 		}
 		advanceToken();
 	}
+
 	statement();
 }
+void constDecls(void)
+{
+	advanceToken();
+	if (!ensureType(identsym))
+	{
+		// ERROR
+		printf("Error number 4, const must be followed by an identifier.\n");
+		exit(0);
+	}
+	advanceToken();
+	if (!ensureType(eqlsym))
+	{
+		// ERROR
+		printf("Error number 3, identifier must be followed by =\n");
+		exit(0);
+	}
+	advanceToken();
+	if (!ensureType(numbersym))
+	{
+		// ERROR
+		printf("Error number 2, = must be followed by a number.\n");
+		exit(0);
+	}
+	advanceToken();
 
+	if (ensureType(commasym))
+		constDecls();
+}
+void varDecls(void)
+{
+	advanceToken();
+	if (!ensureType(identsym))
+	{
+		// ERROR
+		printf("Error number 4, var must be followed by an identifier.\n");
+		exit(0);
+	}
+	advanceToken();
+
+	if (ensureType(commasym))
+		varDecls();
+}
+void procDecls(void)
+{
+	advanceToken();
+	if (!ensureType(identsym))
+	{
+		// ERROR
+		printf("Error number 11, undeclared identifier.\n");
+		exit(0);
+	}
+	advanceToken();
+	if (!ensureType(semicolonsym))
+	{
+		// ERROR
+		printf("Error number 5, semicolon or comma missing.\n");
+		exit(0);
+	}
+	advanceToken();
+	block();
+}
 void statement(void)
 {
 	// identifier
@@ -142,6 +154,8 @@ void statement(void)
 		advanceToken();
 		expression();
 
+		// This if condition invokes the requirement that each assignment
+		// statement must end with a semicolon.
 		if (!ensureType(semicolonsym))
 		{
 			// ERROR
