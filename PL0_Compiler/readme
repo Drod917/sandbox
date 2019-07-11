@@ -1,0 +1,16 @@
+To compile in gcc:
+
+gcc compilerdriver.c -o parse
+
+To run:
+
+./parse <filename>
+
+
+RASPBERRY PI USERS:
+
+Compile in gcc using the -fsigned-char flag to avoid infinite looping during runtime.
+
+Example:
+
+gcc -fsigned-char <filename> -o parse
