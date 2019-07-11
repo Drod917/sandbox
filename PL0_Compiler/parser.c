@@ -12,6 +12,9 @@ void expression(void);
 void term(void);
 void factor(void);
 
+int level = 0;
+int address = 0;
+
 // Parses a list of tokens and returns a symbol table if
 // syntactically correct.
 Symbol **parse(Token **tokenList)
@@ -22,6 +25,14 @@ Symbol **parse(Token **tokenList)
 		exit(0);
 	}
 	tokenIndex = -1;
+	symbolIndex = 1;
+	symbolTable = malloc(sizeof(Symbol *) * SYMBOL_TABLE_SIZE);
+	if (symbolTable == NULL)
+	{
+		printf("NULL POINTER ON SYMBOL TABLE CREATION.\n");
+		exit(0);
+	}
+
 	// GET(TOKEN)
 	advanceToken();
 	block();
@@ -32,6 +43,8 @@ Symbol **parse(Token **tokenList)
 		printf("Period expected.\n");
 		exit(0);
 	}
+
+	return symbolTable;
 }
 void block(void)
 {
@@ -81,12 +94,22 @@ void block(void)
 void constDecls(void)
 {
 	advanceToken();
+
+	char *identifier = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+	if (identifier == NULL)
+	{
+		printf("NULL POINTER ON IDENTIFIER CREATION.\n");
+		exit(0);
+	}
+
 	if (!ensureType(identsym))
 	{
 		// ERROR
 		printf("Error number 4, const must be followed by an identifier.\n");
 		exit(0);
 	}
+	identifier = currToken->identifier;
+
 	advanceToken();
 	if (!ensureType(eqlsym))
 	{
@@ -101,8 +124,10 @@ void constDecls(void)
 		printf("Error number 2, = must be followed by a number.\n");
 		exit(0);
 	}
-	advanceToken();
+	// Insert
+	symbolTable[symbolIndex++] = newSymbol(1, identifier, currToken->number);
 
+	advanceToken();
 	if (ensureType(commasym))
 		constDecls();
 }
@@ -115,8 +140,11 @@ void varDecls(void)
 		printf("Error number 4, var must be followed by an identifier.\n");
 		exit(0);
 	}
-	advanceToken();
+	char *identifier = newIdentifier(currToken->identifier);
+	// Insert
+	symbolTable[symbolIndex++] = newSymbol(2, identifier, 0);
 
+	advanceToken();
 	if (ensureType(commasym))
 		varDecls();
 }
@@ -129,6 +157,10 @@ void procDecls(void)
 		printf("Error number 11, undeclared identifier.\n");
 		exit(0);
 	}
+	char *identifier = newIdentifier(currToken->identifier);
+	// Insert
+	symbolTable[symbolIndex++] = newSymbol(3, identifier, 0);
+
 	advanceToken();
 	if (!ensureType(semicolonsym))
 	{

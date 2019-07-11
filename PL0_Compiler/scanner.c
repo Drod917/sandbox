@@ -47,7 +47,7 @@ Token **scan(FILE *ifp)
 		}
 		else if (isdigit(c))
 		{
-			while (isdigit(c) )//&& bufferIndex < MAX_IDENT_LENGTH - 1)
+			while (isdigit(c))//&& bufferIndex < MAX_IDENT_LENGTH - 1)
 			{
 				buffer[bufferIndex++] = c;
 				c = fgetc(ifp);

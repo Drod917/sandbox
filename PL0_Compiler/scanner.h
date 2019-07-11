@@ -41,6 +41,8 @@ char *getType(int type);
 void printTokenList(Token **tokenList);
 
 FILE *ifp;
+Token **tokenList;
+Token *currToken;
 int tokenIndex;
 int debug = 0;
 
@@ -57,8 +59,8 @@ Token *allocToken()
 
 Token **allocTokenList()
 {
-	Token **tokenList = malloc(sizeof(Token *) * MAX_TOKENS);
-	if (tokenList == NULL)
+	Token **newList = malloc(sizeof(Token *) * MAX_TOKENS);
+	if (newList == NULL)
 	{		
 		fprintf(stderr, "MALLOC FAIL ON NEW TOKENLIST\n");
 		exit(0);

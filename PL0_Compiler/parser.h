@@ -2,26 +2,27 @@
 // COP3402 
 // Professor Montagne
 
-#define MAX_SYMBOL_TABLE_SIZE 1024
+#define SYMBOL_TABLE_SIZE 1024
+#define MAX_IDENT_LENGTH 12
 
-struct Symbol *newSymbol(Token *currToken);
+struct Symbol *newSymbol(int kind, char * identifier, int val);
 struct Symbol **symbolTable;
 void advanceToken(void);
 int ensureType(TokenType type);
+void printSymbolTable(int size);
 
 typedef struct Symbol
 {
 	int kind;		// const = 1, var = 2, proc = 3
-	char name[10];	// name up to 11 chars
+	char *name;	// name up to 11 chars
 	int val;		// number (ASCII value)
 	int level;		// L level
 	int addr;		// M address
 	int mark;		// to indicate that code has been generated already for a block
 }Symbol;
 
-Token **tokenList;
-Token *currToken;
 Symbol **symbolTable;
+int symbolIndex;
 
 void advanceToken()
 {
@@ -49,8 +50,8 @@ void advanceToken()
 
 }
 
-// TODO
-Symbol *newSymbol(Token *currToken)
+// KIND: const = 1, var = 2, proc = 3
+Symbol *newSymbol(int kind, char * identifier, int val)
 {
 	if (currToken == NULL)
 	{
@@ -65,10 +66,16 @@ Symbol *newSymbol(Token *currToken)
 		exit(0);
 	}
 
-	if (currToken->type == constsym)
-	{
-		newSymbol->kind = 1;
-	}
+	newSymbol->kind = kind;
+	newSymbol->name = identifier;
+	newSymbol->val = val;
+	newSymbol->level = 0;
+	newSymbol->addr = 0;
+	newSymbol-> mark = 0;
+
+	// printf("ADDING NEW SYMBOL %s\n", identifier);
+
+	return newSymbol;
 }
 
 void enter(Token *currToken)
@@ -116,4 +123,36 @@ int isRelop(Token *token)
 		token->type == geqsym)
 		return 1;
 	return 0;
+}
+
+void printSymbolTable(int size)
+{
+	printf("\nSymbol Table:\n");
+	int i;
+	for (i = 1; i < size; i++)
+	{
+		printf("Kind: %d Name: %s Value: %d Level: %d Address: %d Mark: %d\n",
+				symbolTable[i]->kind, symbolTable[i]->name, symbolTable[i]->val,
+				symbolTable[i]->level, symbolTable[i]->addr, symbolTable[i]->mark);
+	}
+	printf("\n");
+}
+
+char *newIdentifier(char *name)
+{
+	if (name == NULL)
+	{
+		printf("NULL POINTER PASSED TO newIdentifier.\n");
+		exit(0);
+	}
+
+	char *newIdent = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+	if (newIdent == NULL)
+	{
+		printf("NULL POINTER ON IDENTIFIER ALLOCATION.\n");
+		exit(0);
+	}
+
+	strcpy(newIdent, name);
+	return newIdent;
 }

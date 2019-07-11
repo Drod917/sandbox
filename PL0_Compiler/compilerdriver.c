@@ -3,7 +3,7 @@
 #include "parser.c"
 //#include "codegen.c"
 
-int initCompiler(int argc, char **argv)
+int initDriver(int argc, char **argv)
 {
 	if (argc < 2)
 	{
@@ -15,15 +15,16 @@ int initCompiler(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	initCompiler(argc, argv);
+	initDriver(argc, argv);
 	// Scan source to tokenList and print source program
 	tokenList = scan(ifp);
 	printTokenList(tokenList);
 
 	// Parse tokenlist (tokenize the source -> symbol table)
 	symbolTable = parse(tokenList);
-	printf("No errors, program is syntactically correct.\n");
+	printf("\nNo errors, program is syntactically correct.\n");
 	// Generate code (symtab -> assembly)
+	printSymbolTable(symbolIndex);
 	// Produce VM output (run assembly in VM)
 
 	return 0;
