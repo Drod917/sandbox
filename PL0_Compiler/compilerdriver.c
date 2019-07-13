@@ -1,7 +1,7 @@
-//#include "vm_impl.c"
+#include "vm_impl.c"
 #include "scanner.c"
+#include "codegen.h"
 #include "parser.c"
-//#include "codegen.c"
 
 int initDriver(int argc, char **argv)
 {
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	printf("\nNo errors, program is syntactically correct.\n");
 	// Generate code (symtab -> assembly)
 	printSymbolTable(symbolIndex);
+	fflush(stdout);
 	// Produce VM output (run assembly in VM)
-
 	return 0;
 }

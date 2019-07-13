@@ -15,9 +15,19 @@
 #define REGISTER_FILE_SIZE 8
 
 // STRUCT DEFINITIONS
+typedef enum isaOPS
+{
+	
+	LIT = 1, RTN = 2, LOD = 3, STO = 4, CAL = 5, INC = 6,
+	JMP = 7, JPC = 8, SIO1 = 9, SIO2 = 10, SIO3 = 11, NEG = 12,
+	ADD = 13, SUB = 14, MUL = 15, DIV = 16, ODD = 17,
+	MOD = 18, EQL = 19, NEQ = 20, LSS = 21, LEQ = 22,
+	GTR = 23, GEQ = 24
+}OP;
+
 typedef struct Instruction
 {
-	int op;	// opcode
+	OP op;	// opcode
 	int r;	// R
 	int l;	// L
 	int m;	// M

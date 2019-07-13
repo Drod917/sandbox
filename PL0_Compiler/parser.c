@@ -1,5 +1,4 @@
 #include "parser.h"
-#include "codegen.h"
 
 Symbol **parse(Token **tokenList);
 void program(void);
@@ -28,14 +27,25 @@ Symbol **parse(Token **tokenList)
 	}
 	tokenIndex = -1;
 	symbolIndex = 1;
-	symbolTable = malloc(sizeof(Symbol *) * SYMBOL_TABLE_SIZE);
+	symbolTable = malloc(sizeof(Symbol) * SYMBOL_TABLE_SIZE);
 	if (symbolTable == NULL)
 	{
 		printf("NULL POINTER ON SYMBOL TABLE CREATION.\n");
 		exit(0);
 	}
 
-	code = malloc(sizeof(Instruction *) * CODE_SIZE);
+	cx = 0;
+	code = malloc(sizeof(Instruction) * CODE_SIZE);
+	if (code == NULL)
+	{
+		printf("NULL POINTER ON SYMBOL TABLE CREATION.\n");
+		exit(0);
+	}
+	int i;
+	for (i = 0; i < CODE_SIZE; i++)
+	{
+		code[i] = malloc(sizeof(Instruction));
+	}
 
 	// GET(TOKEN)
 	advanceToken();
@@ -192,12 +202,12 @@ void statement(void)
 
 		// This if condition invokes the requirement that each assignment
 		// statement must end with a semicolon.
-		if (!ensureType(semicolonsym))
-		{
-			// ERROR
-			printf("Error number 5, semicolon or comma missing.\n");
-			exit(0);
-		}
+		// if (!ensureType(semicolonsym))
+		// {
+		// 	// ERROR
+		// 	printf("Error number 5, semicolon or comma missing.\n");
+		// 	exit(0);
+		// }
 	}
 	// call
 	else if (ensureType(callsym))
@@ -244,14 +254,19 @@ void statement(void)
 			exit(0);
 		}
 		advanceToken();
+		int ctemp = cx;
+		emit(JPC, 0, 0, 0);
 		statement();
+		code[ctemp]->m = cx;
 	}
 	// while
 	else if (ensureType(whilesym))
 	{
+		int cx1 = cx;
 		advanceToken();
 		condition();
-
+		int cx2 = cx;
+		emit(JPC, 0, 0, 0);
 		if (!ensureType(dosym))
 		{
 			// ERROR
@@ -260,6 +275,8 @@ void statement(void)
 		}
 		advanceToken();
 		statement();
+		emit(JMP, 0, 0, cx1);
+		code[cx2]->m = cx;
 	}
 }
 void condition(void)
@@ -268,6 +285,10 @@ void condition(void)
 	if (ensureType(oddsym))
 	{
 		advanceToken();
+		expression();
+	}
+	else
+	{
 		expression();
 
 		if (!isRelop(currToken))
@@ -288,10 +309,11 @@ void expression(void)
 	{
 		addop = currToken->type;
 		advanceToken();
-		term();
-		if (addop == minussym);
+		//if (addop == minussym);
 			//emit(OPR, 0, OPR_NEG);	// negate
 	}
+	term();
+
 	while (ensureType(plussym) || ensureType(minussym))
 	{
 		advanceToken();
@@ -331,3 +353,4 @@ void factor(void)
 		exit(0);
 	}
 }
+
