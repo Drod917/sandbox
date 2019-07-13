@@ -309,8 +309,8 @@ void expression(void)
 	{
 		addop = currToken->type;
 		advanceToken();
-		//if (addop == minussym);
-			//emit(OPR, 0, OPR_NEG);	// negate
+		if (addop == minussym);
+			emit(NEG, 0, 0, 0);	// negate
 	}
 	term();
 

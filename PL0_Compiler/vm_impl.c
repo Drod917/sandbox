@@ -17,7 +17,6 @@
 // STRUCT DEFINITIONS
 typedef enum isaOPS
 {
-	
 	LIT = 1, RTN = 2, LOD = 3, STO = 4, CAL = 5, INC = 6,
 	JMP = 7, JPC = 8, SIO1 = 9, SIO2 = 10, SIO3 = 11, NEG = 12,
 	ADD = 13, SUB = 14, MUL = 15, DIV = 16, ODD = 17,
