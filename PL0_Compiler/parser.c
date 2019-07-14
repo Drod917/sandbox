@@ -57,7 +57,7 @@ Symbol **parse(Token **tokenList)
 		printf("Period expected.\n");
 		exit(0);
 	}
-
+	emit(SIO3, 0, 0, 3);
 	return symbolTable;
 }
 void block(void)
@@ -316,17 +316,29 @@ void expression(void)
 
 	while (ensureType(plussym) || ensureType(minussym))
 	{
+		addop = currToken->type;
 		advanceToken();
 		term();
+
+		if (addop == plussym)
+			emit(ADD, 0, 0, 0);	// addition
+		else
+			emit(SUB, 0, 0, 0);	// subtraction
 	}
 }
 void term(void)
 {
+	int mulop;
 	factor();
 	while (ensureType(multsym) || ensureType(slashsym))
 	{
+		mulop = currToken->type;
 		advanceToken();
 		factor();
+		if (mulop == multsym)
+			emit(MUL, 0, 0, 0);	// multiplication
+		else
+			emit(DIV, 0, 0, 0);	// division
 	}
 }
 void factor(void)

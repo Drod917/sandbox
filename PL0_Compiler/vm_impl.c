@@ -381,6 +381,7 @@ void printInAssembly()
 	}
 	free(opC);
 }
+
 void checkFile(char *filename)
 {
 	// Open the input file, check if it exists
@@ -392,8 +393,7 @@ void checkFile(char *filename)
 	}
 	fclose(ifp);
 }
-// Initialize the VM's registers, RF, stack
-void initVM(FILE *ifp)
+void initVM()
 {
 	ir = malloc(sizeof(Instruction));
 	int i;
@@ -402,22 +402,6 @@ void initVM(FILE *ifp)
 	for (i = 0; i < MAX_STACK_HEIGHT; i++)
 		stack[i] = 0;
 
-	// Fill dynamically allocated instructions
-	int opI;
-	for (i = 0; i < numInstructions; i++)
-	{
-		Instruction *newInstr = malloc(sizeof(Instruction));
-		fscanf(ifp, "%d", &opI);
-		newInstr->op = opI;
-		fscanf(ifp, "%d", &opI);
-		newInstr->r = opI;
-		fscanf(ifp, "%d", &opI);
-		newInstr->l = opI;
-		fscanf(ifp, "%d", &opI);
-		newInstr->m = opI;
-		instructions[i] = newInstr;
-	}
-	fclose(ifp);
 	printInAssembly();
 
 	// Print the initial state of the machine
@@ -431,6 +415,7 @@ void initVM(FILE *ifp)
 			   (i < REGISTER_FILE_SIZE) ? " " : "\n");
 	fprintf(stdout, "\n\n");
 }
+
 void cleanupVM()
 {
 	free(ir);
@@ -439,33 +424,19 @@ void cleanupVM()
 		free(instructions[i]);
 	free(instructions);
 }
-int vm(int argc, char **argv)
+
+int vm(Instruction **instructionList, int size)
 {
 	// Improper syntax detected
-	if (argc != 2)
+	if (instructionList == NULL)
 	{
-		fprintf(stderr, "CORRECT SYNTAX: 'vm <input_file.txt>'\n");
+		printf("NULL POINTER PASSED TO VM\n");
 		exit(0);
 	}
+	instructions = instructionList;
+	numInstructions = size;
 
-	// Check if file exists / is valid
-	checkFile(argv[1]);
-
-	// Open the file, gather number of instructions from the input file
-	FILE *ifp = fopen(argv[1], "r");
-
-	char c;
-	for (c = fgetc(ifp); !feof(ifp); c = fgetc(ifp))
-	{
-		if (c == '\n')
-			numInstructions++;
-	}
-	fclose(ifp);
-	instructions = malloc(sizeof(Instruction) * numInstructions);
-
-	// Reset file pointer to fill the dynamically allocated instructions
-	ifp = fopen(argv[1], "r");
-	initVM(ifp);
+	initVM();
 	
 	// VM IS READY, BEGIN FETCH / EXECUTE CYCLE
 	while (running)

@@ -18,14 +18,15 @@ int main(int argc, char **argv)
 	initDriver(argc, argv);
 	// Scan source to tokenList and print source program
 	tokenList = scan(ifp);
-	printTokenList(tokenList);
+	//printTokenList(tokenList);
 
 	// Parse tokenlist (tokenize the source -> symbol table)
 	symbolTable = parse(tokenList);
-	printf("\nNo errors, program is syntactically correct.\n");
+	printf("\nNo errors, program is syntactically correct.\n\n");
 	// Generate code (symtab -> assembly)
-	printSymbolTable(symbolIndex);
-	fflush(stdout);
+	//printSymbolTable(symbolIndex);
+
 	// Produce VM output (run assembly in VM)
+	vm(code, cx);
 	return 0;
 }
