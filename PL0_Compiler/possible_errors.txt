@@ -1,0 +1,16 @@
+2. = must be followed by a number.
+3. identifier must be followed by =
+4. const must be followed by an identifier.
+5. Error number 5, semicolon or comma missing.
+6. incorrect symbol after procedure declaration.
+7. statement expected.
+9. period expected.
+11. undeclared identifier.
+13. assignment operator expected.
+14. call must be followed by an identifier.
+16. then expected.
+18. do expected.
+19. identifier expected following READ.
+20. identifier expected following WRITE.
+22. right parenthesis missing.
+23. the preceding factor cannot begin with this symbol.

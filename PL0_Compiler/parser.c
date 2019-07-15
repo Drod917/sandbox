@@ -8,12 +8,11 @@ void varDecls(void);
 void procDecls(void);
 void statement(void);
 void condition(void);
-void expression(void);
-void term(void);
-void factor(void);
+void expression(int reg);
+void term(int reg);
+void factor(int reg);
 
-int level = 0;
-int address = 0;
+int num1, num2;
 
 // Parses a list of tokens and returns a symbol table if
 // syntactically correct.
@@ -50,11 +49,12 @@ Symbol **parse(Token **tokenList)
 	// GET(TOKEN)
 	advanceToken();
 	block();
-
+	symbolTable[1]->level = -1;
+	symbolTable[1]->addr = -1;
 	if (!ensureType(periodsym))
 	{
 		// ERROR
-		printf("Period expected.\n");
+		printf("Error number 9, period expected.\n");
 		exit(0);
 	}
 	emit(SIO3, 0, 0, 3);
@@ -90,14 +90,27 @@ void block(void)
 		advanceToken();
 	}
 	// procedure
-	if(ensureType(procsym))
+	while (ensureType(procsym))
 	{
-		procDecls();
-		
+		//procDecls();
+		advanceToken();
+		if (!ensureType(identsym))
+		{
+			printf("Error number 6, incorrect symbol after procedure declaration.\n");
+			exit(0);
+		}
+		advanceToken();
 		if (!ensureType(semicolonsym))
 		{
 			// ERROR
 			printf("Error number 5, semicolon or comma missing.\n");
+			exit(0);
+		}
+		advanceToken();
+		block();
+		if (!ensureType(semicolonsym))
+		{
+			printf("Error number 5, semicolon or comma missing\n");
 			exit(0);
 		}
 		advanceToken();
@@ -174,7 +187,7 @@ void procDecls(void)
 	char *identifier = newIdentifier(currToken->identifier);
 	// Insert
 	symbolTable[symbolIndex++] = newSymbol(3, identifier, 0);
-
+	address = 4;
 	advanceToken();
 	if (!ensureType(semicolonsym))
 	{
@@ -183,7 +196,15 @@ void procDecls(void)
 		exit(0);
 	}
 	advanceToken();
+	level++;
 	block();
+	if (!ensureType(semicolonsym))
+	{
+		// ERROR
+		printf("Error number 5, semicolon or comma missing.\n");
+		exit(0);
+	}
+	advanceToken();
 }
 void statement(void)
 {
@@ -194,11 +215,11 @@ void statement(void)
 		if (!ensureType(becomessym))
 		{
 			// ERROR
-			printf("Assignment operator expected.\n");
+			printf("Error number 13, assignment operator expected.\n");
 			exit(0);
 		}
 		advanceToken();
-		expression();
+		expression(0);	// 0 for starting register R
 
 		// This if condition invokes the requirement that each assignment
 		// statement must end with a semicolon.
@@ -278,6 +299,30 @@ void statement(void)
 		emit(JMP, 0, 0, cx1);
 		code[cx2]->m = cx;
 	}
+	// read
+	else if (ensureType(readsym))
+	{
+		advanceToken();
+		if (!ensureType(identsym))
+		{
+			// ERROR
+			printf("Error number 19, identifier expected following READ.\n");
+			exit(0);
+		}
+		emit(SIO2, 0, 0, 2);
+	}
+	// write
+	else if (ensureType(writesym))
+	{
+		advanceToken();
+		if (!ensureType(identsym))
+		{
+			// ERROR
+			printf("Error number 20, identifier expected following WRITE.\n");
+			exit(0);
+		}
+		emit(SIO1, 0, 0, 1);
+	}
 }
 void condition(void)
 {
@@ -285,11 +330,11 @@ void condition(void)
 	if (ensureType(oddsym))
 	{
 		advanceToken();
-		expression();
+		expression(0);
 	}
 	else
 	{
-		expression();
+		expression(0);
 
 		if (!isRelop(currToken))
 		{
@@ -298,11 +343,12 @@ void condition(void)
 			exit(0);
 		}
 		advanceToken();
-		expression();
+		expression(0);
 	}
 }
-void expression(void)
+void expression(int reg)
 {
+	int left = reg, right = reg + 1;
 	TokenType addop;
 	// plus or minus
 	if (ensureType(plussym) || ensureType(minussym))
@@ -310,47 +356,51 @@ void expression(void)
 		addop = currToken->type;
 		advanceToken();
 		if (addop == minussym);
-			emit(NEG, 0, 0, 0);	// negate
+			emit(NEG, 0, RF[left], 0);	// negate
 	}
-	term();
+	term(left);
 
 	while (ensureType(plussym) || ensureType(minussym))
 	{
 		addop = currToken->type;
 		advanceToken();
-		term();
+		term(right);
 
 		if (addop == plussym)
-			emit(ADD, 0, 0, 0);	// addition
+			emit(ADD, 0, RF[left], RF[right]);	// addition
 		else
-			emit(SUB, 0, 0, 0);	// subtraction
+			emit(SUB, 0, RF[left], RF[right]);	// subtraction
 	}
 }
-void term(void)
+void term(int reg)
 {
+	int left = reg, right = reg + 1;
 	int mulop;
-	factor();
+	factor(left);
 	while (ensureType(multsym) || ensureType(slashsym))
 	{
 		mulop = currToken->type;
 		advanceToken();
-		factor();
+		factor(right);
 		if (mulop == multsym)
-			emit(MUL, 0, 0, 0);	// multiplication
+			emit(MUL, 0, RF[left], RF[right]);	// multiplication
 		else
-			emit(DIV, 0, 0, 0);	// division
+			emit(DIV, 0, RF[left], RF[right]);	// division
 	}
 }
-void factor(void)
+void factor(int reg)
 {
 	if (ensureType(identsym))
 		advanceToken();
 	else if (ensureType(numbersym))
+	{
+		RF[reg] = currToken->number;
 		advanceToken();
+	}
 	else if (ensureType(lparentsym))
 	{
 		advanceToken();
-		expression();
+		expression(reg);
 
 		if (!ensureType(rparentsym))
 		{
@@ -365,4 +415,3 @@ void factor(void)
 		exit(0);
 	}
 }
-

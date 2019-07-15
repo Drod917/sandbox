@@ -23,6 +23,8 @@ typedef struct Symbol
 
 Symbol **symbolTable;
 int symbolIndex;
+int level = 0;
+int address = 3;
 
 void advanceToken()
 {
@@ -65,39 +67,42 @@ Symbol *newSymbol(int kind, char * identifier, int val)
 		printf("NULL POINTER ON SYMBOL CREATION\n");
 		exit(0);
 	}
+	if (kind == 3)
+		newSymbol->addr = -1;
+	else
+		newSymbol->addr = ++address;
 
 	newSymbol->kind = kind;
 	newSymbol->name = identifier;
 	newSymbol->val = val;
-	newSymbol->level = 0;
-	newSymbol->addr = 0;
-	newSymbol-> mark = 0;
+	newSymbol->level = level;
+	newSymbol->mark = 0;
 
 	// printf("ADDING NEW SYMBOL %s\n", identifier);
 
 	return newSymbol;
 }
 
-void enter(Token *currToken)
-{
-	if (currToken == NULL)
-	{
-		printf("NULL POINTER ON SYMBOL TABLE INSERTION.\n");
-		exit(0);
-	}
-	if (ensureType(constsym))
-	{
-		// enter const symbol to table
-	}
-	else if (ensureType(varsym))
-	{
-		// enter var symbol to table
-	}
-	else if (ensureType(procsym))
-	{
-		// enter proc symbol to table
-	}
-}
+// void enter(int kind, char *name, int val, Token *currToken)
+// {
+// 	if (currToken == NULL)
+// 	{
+// 		printf("NULL POINTER ON SYMBOL TABLE INSERTION.\n");
+// 		exit(0);
+// 	}
+// 	if (ensureType(constsym))
+// 	{
+// 		// enter const symbol to table
+// 	}
+// 	else if (ensureType(varsym))
+// 	{
+// 		// enter var symbol to table
+// 	}
+// 	else if (ensureType(procsym))
+// 	{
+// 		// enter proc symbol to table
+// 	}
+// }
 
 int ensureType(TokenType type)
 {
