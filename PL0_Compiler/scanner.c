@@ -63,33 +63,39 @@ Token **scan(FILE *ifp)
 		}
 		else if (ispunct(c))
 		{
-			// // comment check
-			// if ('/' == c)
-			// {
-			// 	c = fgetc(ifp);
-			// 	if (c != '*')
-			// 	{
-			// 		fprintf(stderr, "PROPER COMMENT SYNTAX: /* <comment> */\n");
-			// 		exit(0);
-			// 	}
-			// 	// c is *
-			// 	else
-			// 	{
-			// 		c = fgetc(ifp);
-			// 		while (c != '*')
-			// 		{
-			// 			c = fgetc(ifp);
-			// 		}
+			// comment check
+			if ('/' == c)
+			{
+				int comments;
+				c = fgetc(ifp);
+				if (c == '*')
+				{
+					comments = 1;
+					c = fgetc(ifp);
 
-			// 		c = fgetc(ifp);
-
-			// 		if (c != '/')
-			// 		{
-			// 			fprintf(stderr, "PROPER COMMENT SYNTAX: /* <comment> */\n");
-			// 			exit(0);
-			// 		}
-			// 	}
-			// }
+					while (comments)
+					{
+						if (c == '*')
+						{
+							c = fgetc(ifp);
+							if (c == '/' || c == EOF)
+							{
+								comments = 0;
+								c = fgetc(ifp);
+							}
+						}
+						else
+						{
+							c = fgetc(ifp);
+						}
+					}
+				}
+				// c is *
+				else
+				{
+					tokenList[tokenIndex++] = newToken(slashsym);
+				}
+			}
 			if (c == ':')
 			{
 				c = fgetc(ifp);
@@ -112,11 +118,6 @@ Token **scan(FILE *ifp)
 			else if (c == '*')
 			{
 				tokenList[tokenIndex++] = newToken(multsym);
-				c = fgetc(ifp);
-			}
-			else if (c == '/')
-			{
-				tokenList[tokenIndex++] = newToken(slashsym);
 				c = fgetc(ifp);
 			}
 			else if (c == '%')
@@ -181,6 +182,8 @@ Token **scan(FILE *ifp)
 				tokenList[tokenIndex++] = newToken(periodsym);
 				c = fgetc(ifp);
 			}
+			else if (c == '\n')
+				c = fgetc(ifp);
 			else
 			{
 				fprintf(stderr, "TOKEN  %c NOT FOUND\n", c);
@@ -188,6 +191,8 @@ Token **scan(FILE *ifp)
 			}
 		}
 		else if (isspace(c))
+			c = fgetc(ifp);
+		else if (c == '\n')
 			c = fgetc(ifp);
 		else if (c == EOF)
 		{
