@@ -92,28 +92,28 @@ void block(void)
 	// procedure
 	while (ensureType(procsym))
 	{
-		//procDecls();
-		advanceToken();
-		if (!ensureType(identsym))
-		{
-			printf("Error number 6, incorrect symbol after procedure declaration.\n");
-			exit(0);
-		}
-		advanceToken();
-		if (!ensureType(semicolonsym))
-		{
-			// ERROR
-			printf("Error number 5, semicolon or comma missing.\n");
-			exit(0);
-		}
-		advanceToken();
-		block();
-		if (!ensureType(semicolonsym))
-		{
-			printf("Error number 5, semicolon or comma missing\n");
-			exit(0);
-		}
-		advanceToken();
+		procDecls();
+		// advanceToken();
+		// if (!ensureType(identsym))
+		// {
+		// 	printf("Error number 6, incorrect symbol after procedure declaration.\n");
+		// 	exit(0);
+		// }
+		// advanceToken();
+		// if (!ensureType(semicolonsym))
+		// {
+		// 	// ERROR
+		// 	printf("Error number 5, semicolon or comma missing.\n");
+		// 	exit(0);
+		// }
+		// advanceToken();
+		// block();
+		// if (!ensureType(semicolonsym))
+		// {
+		// 	printf("Error number 5, semicolon or comma missing\n");
+		// 	exit(0);
+		// }
+		// advanceToken();
 	}
 
 	statement();
