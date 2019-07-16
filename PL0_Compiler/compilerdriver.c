@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
 	// Scan source to tokenList and print source program
 	tokenList = scan(ifp);
-	printTokenList(tokenList);
+	//printTokenList(tokenList);
 
 	// Parse tokenlist (tokenize the source -> symbol table)
 	program(tokenList);
@@ -26,8 +26,9 @@ int main(int argc, char **argv)
 	printf("\nNo errors, program is syntactically correct.\n\n");
 
 	// Generate code (symtab -> assembly)
-	printSymbolTable(tableIndex);
+	//printSymbolTable(tableIndex);
 
+	// Convert code to legacy format (double pointer...)
 	Instruction **vmCodes = malloc(sizeof(Instruction) * CODE_SIZE);
 	int i;
 	for (i = 0; i < CODE_SIZE; i++)

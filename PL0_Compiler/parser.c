@@ -10,9 +10,12 @@ void varDecl(void);
 void statement(void);
 void condition(void);
 int isRelop(void);
+void relOp(TokenType type);
 void expression(void);
 void term(void);
 void factor(void);
+
+int addr1, addr2;
 
 void program(Token **tokenList)
 {
@@ -61,6 +64,9 @@ void constDecl(void)
 		strcpy(ident, token->identifier);
 
 		advanceToken();
+		// Common error catch
+		if (ensureType(becomessym))
+			error(1);
 		if (!ensureType(eqlsym))
 			error(3);
 		advanceToken();
@@ -74,7 +80,7 @@ void constDecl(void)
 
 		// Store the const in the stack
 		emit(LIT, 0, 0, val);
-		emit(STO, 0, level, address);
+		emit(STO, 0, level, address - 1);
 	}
 	while (ensureType(commasym));
 
@@ -107,6 +113,9 @@ void varDecl(void)
 	}
 	while(ensureType(commasym));
 
+	// Token was advanced, but is still an identifier
+	if (ensureType(identsym) || isReserved(token->identifier) > 0)
+		error(5);
 	if (!ensureType(semicolonsym))
 		error(17);
 	advanceToken();
@@ -134,11 +143,20 @@ void statement(void)
 	else if (ensureType(beginsym))
 	{
 		advanceToken();
+		// begin found but no statement
+		if (ensureType(endsym))
+			error(7);
 		statement();
 
+		// Catch statements with no semicolon separation
+		if (!ensureType(semicolonsym) && !ensureType(endsym))
+			error(10);
 		while (ensureType(semicolonsym))
 		{
 			advanceToken();
+			// Cannot have 'end' following a semicolon in this grammar
+			if (ensureType(endsym))
+				error(19);
 			statement();
 		}
 		if (!ensureType(endsym))
@@ -153,17 +171,25 @@ void statement(void)
 		if (!ensureType(thensym))
 			error(16);
 		advanceToken();
+		int ctemp = codeIndex;
+		emit(JPC, 0, 0, 0);
 		statement();
+		code[ctemp].m = codeIndex;
 	}
 	else if (ensureType(whilesym))
 	{
+		int cx1 = codeIndex;
 		advanceToken();
 		condition();
 
+		int cx2 = codeIndex;
+		emit(JPC, 0, 0, 0);
 		if (!ensureType(dosym))
 			error(18);
 		advanceToken();
 		statement();
+		emit(JMP, 0, 0, cx1);
+		code[cx2].m = codeIndex;
 	}
 }
 void condition(void)
@@ -172,18 +198,74 @@ void condition(void)
 	{
 		advanceToken();
 		expression();
+		emit(ODD, rfIndex, rfIndex, 0);
 	}
 	else
 	{
 		expression();
+		// retrieved last val found
 
 		if (!isRelop())
 			error(20);
+		int relop = token->type;
+
 		advanceToken();
+		rfIndex += 1;
 		expression();
+		relOp(relop);
 	}
 }
-
+void relOp(TokenType type)
+{
+	TokenType opType = type;
+	switch(opType)
+	{
+		case eqlsym:
+			emit(EQL, 0, 0, 1);
+			break;
+		case neqsym:
+			emit(NEQ, 0, 0, 1);
+			break;
+		case lessym:
+			emit(LSS, 0, 0, 1);
+			break;
+		case leqsym:
+			emit(LEQ, 0, 0, 1);
+			break;
+		case gtrsym:
+			emit(GTR, 0, 0, 1);
+			break;
+		case geqsym:
+			emit(GEQ, 0, 0, 1);
+			break;
+		default:
+			break;
+	}
+}
+int isRelop(void)
+{
+	if (token == NULL)
+		return 0;
+	TokenType opType = token->type;
+	switch(opType)
+	{
+		case eqlsym:
+			return 1;
+		case neqsym:
+			return 1;
+		case lessym:
+			return 1;
+		case leqsym:
+			return 1;
+		case gtrsym:
+			return 1;
+		case geqsym:
+			return 1;
+		default:
+			break;
+	}
+	return 0;
+}
 void expression(void)
 {
 	if (ensureType(plussym) || ensureType(minussym))
@@ -236,16 +318,18 @@ void factor(void)
 
 		// const
 		if (table[i].kind == 1)
-			emit(LIT, rfIndex++, 0, table[i].val);
+			emit(LIT, rfIndex, 0, table[i].val);
 		// var
 		else if (table[i].kind == 2)
-			emit(LOD, 0, level, table[i].address);
+			emit(LOD, rfIndex, level, table[i].address);
+		rfIndex += 1;
 		advanceToken();
 	}
 	else if (ensureType(numbersym))
 	{
 		// load literal value into register
-		emit(LIT, 0, 0, token->number);
+		emit(LIT, rfIndex, 0, token->number);
+		rfIndex += 1;
 		advanceToken();
 	}
 	else if (ensureType(lparentsym))
@@ -258,18 +342,4 @@ void factor(void)
 	}
 	else
 		error(27);
-}
-
-int isRelop(void)
-{
-	if (token == NULL)
-		return 0;
-	if (token->type == eqlsym ||
-		token->type == neqsym ||
-		token->type == lessym ||
-		token->type == leqsym ||
-		token->type == gtrsym ||
-		token->type == geqsym)
-		return 1;
-	return 0;
 }

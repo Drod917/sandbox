@@ -39,7 +39,7 @@ void advanceToken(void)
 	if (token == NULL)
 	{
 		// NULL PTR ERROR
-		printf("TOKEN IS NOW NULL.\n");
+		//printf("TOKEN IS NOW NULL.\n");
 	}
 	// else
 	// 	printf("Token is now %d\n", token->type);
@@ -48,8 +48,7 @@ int ensureType(TokenType type)
 {
 	if (token == NULL)
 	{
-		printf("Token is NULL!\n");
-		exit(0);
+		return 0;
 	}
 	if (token->type != type)
 		return 0;
@@ -108,91 +107,92 @@ void printSymbolTable(int size)
 				table[i].kind, table[i].name, table[i].val, table[i].level,
 				table[i].address, table[i].mark);
 	}
+	printf("\n");
 }
 void error(int errorNo)
 {
 	switch (errorNo)
 	{
 		case 1:
-			printf("Use = instead of :=.\n");
+			printf("Error number 1. Use = instead of :=.\n");
 			break;
 		case 2:
-			printf("= must be followed by a number.\n");
+			printf("Error number 2. = must be followed by a number.\n");
 			break;
 		case 3:
-			printf("Identifier must be followed by =.\n");
+			printf("Error number 3. Identifier must be followed by =.\n");
 			break;
 		case 4:
-			printf("const, var, procedure must be followed by identifier.\n");
+			printf("Error number 4. const, var, procedure must be followed by an identifier.\n");
 			break;
 		case 5:
-			printf("Semicolon or comma missing.\n");
+			printf("Error number 5. Semicolon or comma missing.\n");
 			break;
 		case 6:
-			printf("Incorrect symbol after procedure declaration.\n");
+			printf("Error number 6. Incorrect symbol after procedure declaration.\n");
 			break;
 		case 7:
-			printf("Statement expected.\n");
+			printf("Error number 7. Statement expected.\n");
 			break;
 		case 8:
-			printf("Incorrect symbol after statement part in block.\n");
+			printf("Error number 8. Incorrect symbol after statement part in block.\n");
 			break;
 		case 9:
-			printf("Period expected.\n");
+			printf("Error number 9. Period expected.\n");
 			break;
 		case 10:
-			printf("Semicolon between statements missing.\n");
+			printf("Error number 10. Semicolon between statements missing.\n");
 			break;
 		case 11:
-			printf("Undeclared identifier.\n");
+			printf("Error number 11. Undeclared identifier.\n");
 			break;
 		case 12:
-			printf("Assignment to constant or procedure is not allowed.\n");
+			printf("Error number 12. Assignment to constant or procedure is not allowed.\n");
 			break;
 		case 13:
-			printf("Assignment operator expected.\n");
+			printf("Error number 13. Assignment operator expected.\n");
 			break;
 		case 14:
-			printf("call must be followed by an identifier.\n");
+			printf("Error number 14. call must be followed by an identifier.\n");
 			break;
 		case 15:
-			printf("Call of a constant or variable is meaningless.\n");
+			printf("Error number 15. Call of a constant or variable is meaningless.\n");
 			break;
 		case 16:
-			printf("then expected.\n");
+			printf("Error number 16. then expected.\n");
 			break;
 		case 17:
-			printf("Semicolon or } expected.\n");
+			printf("Error number 17. Semicolon or } expected.\n");
 			break;
 		case 18:
-			printf("do expected.\n");
+			printf("Error number 18. do expected.\n");
 			break;
 		case 19:
-			printf("Incorrect symbol following statement.\n");
+			printf("Error number 19. Incorrect symbol following statement.\n");
 			break;
 		case 20:
-			printf("Relational operator expected.\n");
+			printf("Error number 20. Relational operator expected.\n");
 			break;
 		case 21:
-			printf("Expression must not contain a procedure identifier.\n");
+			printf("Error number 21. Expression must not contain a procedure identifier.\n");
 			break;
 		case 22:
-			printf("Right parenthesis is missing.\n");
+			printf("Error number 22. Right parenthesis is missing.\n");
 			break;
 		case 23:
-			printf("The preceding factor cannot begin with this symbol.\n");
+			printf("Error number 23. The preceding factor cannot begin with this symbol.\n");
 			break;
 		case 24:
-			printf("An expression cannot begin with this symbol.\n");
+			printf("Error number 24. An expression cannot begin with this symbol.\n");
 			break;
 		case 25:
-			printf("Code size exceeds maximum.\n");
+			printf("Error number 25. Code size exceeds maximum.\n");
 			break;
 		case 26:
-			printf("end expected to close begin statement.\n");
+			printf("Error number 26. end expected to close begin statement.\n");
 			break;
 		case 27:
-			printf("Factor must be a number or identifier.\n");
+			printf("Error number 27. Factor must be a number or identifier.\n");
 			break;
 		default:
 			break;
