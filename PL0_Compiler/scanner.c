@@ -68,35 +68,55 @@ Token **scan(FILE *ifp)
 			{
 				int comments;
 				c = fgetc(ifp);
-				if (c == '*')
+
+				if (c != '*')
 				{
-					comments = 1;
+					tokenList[tokenIndex++] = newToken(slashsym);
+				}
+				else
+				{
 					c = fgetc(ifp);
+					comments = 1;
 
 					while (comments)
 					{
 						if (c == '*')
 						{
 							c = fgetc(ifp);
-							if (c == '/' || c == EOF)
+							if (c != '/')
+							{
+								c = fgetc(ifp);
+							}
+							else if (c == '/' || c == EOF)
 							{
 								comments = 0;
 								c = fgetc(ifp);
 							}
 						}
 						else
-						{
 							c = fgetc(ifp);
-						}
 					}
+					// comments = 1;
+					// c = fgetc(ifp);
+					// while (comments)
+					// {
+					// 	if (c == '*')
+					// 	{
+					// 		c = fgetc(ifp);
+					// 		if (c == '/')
+					// 		{
+					// 			comments = 0;
+					// 			c = fgetc(ifp);
+					// 		}
+					// 	}
+					// 	else
+					// 	{
+					// 		c = fgetc(ifp);
+					// 	}
+					// }
 				}
-				// c is *
-				else
-				{
-					tokenList[tokenIndex++] = newToken(slashsym);
-				}
-			}
-			if (c == ':')
+			}	// if comment, should leave with c == token after /
+			else if (c == ':')
 			{
 				c = fgetc(ifp);
 				if (c == '=')
@@ -183,7 +203,7 @@ Token **scan(FILE *ifp)
 				c = fgetc(ifp);
 			}
 			else if (c == '\n')
-				c = fgetc(ifp);
+			 	c = fgetc(ifp);
 			else
 			{
 				fprintf(stderr, "TOKEN  %c NOT FOUND\n", c);

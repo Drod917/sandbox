@@ -9,7 +9,7 @@
 //#include "vm_impl.c"
 
 #define MAX_TOKENS 1024
-#define MAX_IDENT_LENGTH 12
+#define MAX_IDENT_LENGTH 11
 
 typedef enum TokenType
 {

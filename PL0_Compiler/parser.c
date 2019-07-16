@@ -1,248 +1,136 @@
-#include "parser.h"
+#include "symtab.h"
 
-Symbol **parse(Token **tokenList);
-void program(void);
+// fix the * \n / error in scanner
+void advanceToken(void);
+
+void program(Token **tokenList);
 void block(void);
-void constDecls(void);
-void varDecls(void);
-void procDecls(void);
+void constDecl(void);
+void varDecl(void);
 void statement(void);
 void condition(void);
-void expression(int reg);
-void term(int reg);
-void factor(int reg);
+int isRelop(void);
+void expression(void);
+void term(void);
+void factor(void);
 
-int num1, num2;
-
-// Parses a list of tokens and returns a symbol table if
-// syntactically correct.
-Symbol **parse(Token **tokenList)
+void program(Token **tokenList)
 {
-	// Initiate
 	if (tokenList == NULL)
 	{
-		printf("TokenList is NULL\n");
+		printf("TOKENLIST IS NULL\n");
 		exit(0);
 	}
 	tokenIndex = -1;
-	symbolIndex = 1;
-	symbolTable = malloc(sizeof(Symbol) * SYMBOL_TABLE_SIZE);
-	if (symbolTable == NULL)
-	{
-		printf("NULL POINTER ON SYMBOL TABLE CREATION.\n");
-		exit(0);
-	}
+	tableIndex = 1;
+	rfIndex = 0;
+	codeIndex = 0;
+	level = 0;
+	// Addresses 0, 1, 2, 3 are reserved for FV, SL, DL, RA
+	address = 4;
+	tokens = tokenList;
 
-	cx = 0;
-	code = malloc(sizeof(Instruction) * CODE_SIZE);
-	if (code == NULL)
-	{
-		printf("NULL POINTER ON SYMBOL TABLE CREATION.\n");
-		exit(0);
-	}
-	int i;
-	for (i = 0; i < CODE_SIZE; i++)
-	{
-		code[i] = malloc(sizeof(Instruction));
-	}
-
-	// GET(TOKEN)
 	advanceToken();
 	block();
-	symbolTable[1]->level = -1;
-	symbolTable[1]->addr = -1;
 	if (!ensureType(periodsym))
-	{
-		// ERROR
-		printf("Error number 9, period expected.\n");
-		exit(0);
-	}
+		error(9);
+	table[1].level = -1;
+	table[1].address = -1;
 	emit(SIO3, 0, 0, 3);
-	return symbolTable;
 }
+
 void block(void)
 {
-	// constdecl
 	if (ensureType(constsym))
-	{
-		constDecls();
-
-		if (!ensureType(semicolonsym))
-		{
-			// ERROR
-			printf("Error number 5, semicolon or comma missing.\n");
-			exit(0);
-		}
-		advanceToken();
-	}
-
-	// vardecl
+		constDecl();
 	if (ensureType(varsym))
-	{
-		varDecls();
-
-		if (!ensureType(semicolonsym))
-		{
-			// ERROR
-			printf("Error number 5, semicolon or comma missing.\n");
-			exit(0);
-		}
-		advanceToken();
-	}
-	// procedure
-	while (ensureType(procsym))
-	{
-		procDecls();
-		// advanceToken();
-		// if (!ensureType(identsym))
-		// {
-		// 	printf("Error number 6, incorrect symbol after procedure declaration.\n");
-		// 	exit(0);
-		// }
-		// advanceToken();
-		// if (!ensureType(semicolonsym))
-		// {
-		// 	// ERROR
-		// 	printf("Error number 5, semicolon or comma missing.\n");
-		// 	exit(0);
-		// }
-		// advanceToken();
-		// block();
-		// if (!ensureType(semicolonsym))
-		// {
-		// 	printf("Error number 5, semicolon or comma missing\n");
-		// 	exit(0);
-		// }
-		// advanceToken();
-	}
+		varDecl();
 
 	statement();
 }
-void constDecls(void)
+void constDecl(void)
 {
-	advanceToken();
+	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+	int val;
 
-	char *identifier = malloc(sizeof(char) * MAX_IDENT_LENGTH);
-	if (identifier == NULL)
-	{
-		printf("NULL POINTER ON IDENTIFIER CREATION.\n");
-		exit(0);
-	}
-
-	if (!ensureType(identsym))
-	{
-		// ERROR
-		printf("Error number 4, const must be followed by an identifier.\n");
-		exit(0);
-	}
-	identifier = currToken->identifier;
-
-	advanceToken();
-	if (!ensureType(eqlsym))
-	{
-		// ERROR
-		printf("Error number 3, identifier must be followed by =\n");
-		exit(0);
-	}
-	advanceToken();
-	if (!ensureType(numbersym))
-	{
-		// ERROR
-		printf("Error number 2, = must be followed by a number.\n");
-		exit(0);
-	}
-	// Insert
-	symbolTable[symbolIndex++] = newSymbol(1, identifier, currToken->number);
-
-	advanceToken();
-	if (ensureType(commasym))
-		constDecls();
-}
-void varDecls(void)
-{
-	advanceToken();
-	if (!ensureType(identsym))
-	{
-		// ERROR
-		printf("Error number 4, var must be followed by an identifier.\n");
-		exit(0);
-	}
-	char *identifier = newIdentifier(currToken->identifier);
-	// Insert
-	symbolTable[symbolIndex++] = newSymbol(2, identifier, 0);
-
-	advanceToken();
-	if (ensureType(commasym))
-		varDecls();
-}
-void procDecls(void)
-{
-	advanceToken();
-	if (!ensureType(identsym))
-	{
-		// ERROR
-		printf("Error number 11, undeclared identifier.\n");
-		exit(0);
-	}
-	char *identifier = newIdentifier(currToken->identifier);
-	// Insert
-	symbolTable[symbolIndex++] = newSymbol(3, identifier, 0);
-	address = 4;
-	advanceToken();
-	if (!ensureType(semicolonsym))
-	{
-		// ERROR
-		printf("Error number 5, semicolon or comma missing.\n");
-		exit(0);
-	}
-	advanceToken();
-	level++;
-	block();
-	if (!ensureType(semicolonsym))
-	{
-		// ERROR
-		printf("Error number 5, semicolon or comma missing.\n");
-		exit(0);
-	}
-	advanceToken();
-}
-void statement(void)
-{
-	// identifier
-	if (ensureType(identsym))
-	{
-		advanceToken();
-		if (!ensureType(becomessym))
-		{
-			// ERROR
-			printf("Error number 13, assignment operator expected.\n");
-			exit(0);
-		}
-		advanceToken();
-		expression(0);	// 0 for starting register R
-
-		// This if condition invokes the requirement that each assignment
-		// statement must end with a semicolon.
-		// if (!ensureType(semicolonsym))
-		// {
-		// 	// ERROR
-		// 	printf("Error number 5, semicolon or comma missing.\n");
-		// 	exit(0);
-		// }
-	}
-	// call
-	else if (ensureType(callsym))
+	do
 	{
 		advanceToken();
 		if (!ensureType(identsym))
-		{
-			// ERROR
-			printf("Error number 14, call must be followed by an identifier.\n");
-			exit(0);
-		}
+			error(4);
+		strcpy(ident, token->identifier);
+
 		advanceToken();
+		if (!ensureType(eqlsym))
+			error(3);
+		advanceToken();
+		if (!ensureType(numbersym))
+			error(2);
+		val = token->number;
+		advanceToken();
+
+		// Enter const into symbol table
+		enter(1, ident, val, level, address);
+
+		// Store the const in the stack
+		emit(LIT, 0, 0, val);
+		emit(STO, 0, level, address);
 	}
-	// begin
+	while (ensureType(commasym));
+
+	if (!ensureType(semicolonsym))
+		error(17);
+	advanceToken();
+
+	free(ident);
+}
+void varDecl(void)
+{
+	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+	if (ident == NULL)
+	{
+		printf("NULL PTR ON IDENT MALLOC.\n");
+		exit(0);
+	}
+
+	do
+	{
+		advanceToken();
+		if (!ensureType(identsym))
+			error(4);
+		strcpy(ident, token->identifier);
+
+		advanceToken();
+
+		// Enter var into symbol table
+		enter(2, ident, 0, level, address);
+	}
+	while(ensureType(commasym));
+
+	if (!ensureType(semicolonsym))
+		error(17);
+	advanceToken();
+
+	free(ident);
+}
+void statement(void)
+{
+	if (ensureType(identsym))
+	{
+		int i = lookup(token->identifier);
+		if (i == 0)
+			error(11);
+		if (table[i].kind != identsym)
+			error(12);
+
+		advanceToken();
+		if (!ensureType(becomessym))
+			error(13);
+		advanceToken();
+		expression();
+
+		emit(STO, 0, level, table[i].address);
+	}
 	else if (ensureType(beginsym))
 	{
 		advanceToken();
@@ -253,165 +141,135 @@ void statement(void)
 			advanceToken();
 			statement();
 		}
-
 		if (!ensureType(endsym))
-		{
-			// ERROR
-			printf("Error number 7, statement expected.\n");
-			exit(0);
-		}
+			error(26);
 		advanceToken();
 	}
-	// if
 	else if (ensureType(ifsym))
 	{
 		advanceToken();
 		condition();
 
 		if (!ensureType(thensym))
-		{
-			// ERROR
-			printf("Error number 16, then expected.\n");
-			exit(0);
-		}
+			error(16);
 		advanceToken();
-		int ctemp = cx;
-		emit(JPC, 0, 0, 0);
 		statement();
-		code[ctemp]->m = cx;
 	}
-	// while
 	else if (ensureType(whilesym))
 	{
-		int cx1 = cx;
 		advanceToken();
 		condition();
-		int cx2 = cx;
-		emit(JPC, 0, 0, 0);
+
 		if (!ensureType(dosym))
-		{
-			// ERROR
-			printf("Error number 18, do expected.\n");
-			exit(0);
-		}
+			error(18);
 		advanceToken();
 		statement();
-		emit(JMP, 0, 0, cx1);
-		code[cx2]->m = cx;
-	}
-	// read
-	else if (ensureType(readsym))
-	{
-		advanceToken();
-		if (!ensureType(identsym))
-		{
-			// ERROR
-			printf("Error number 19, identifier expected following READ.\n");
-			exit(0);
-		}
-		emit(SIO2, 0, 0, 2);
-	}
-	// write
-	else if (ensureType(writesym))
-	{
-		advanceToken();
-		if (!ensureType(identsym))
-		{
-			// ERROR
-			printf("Error number 20, identifier expected following WRITE.\n");
-			exit(0);
-		}
-		emit(SIO1, 0, 0, 1);
 	}
 }
 void condition(void)
 {
-	// odd
 	if (ensureType(oddsym))
 	{
 		advanceToken();
-		expression(0);
+		expression();
 	}
 	else
 	{
-		expression(0);
+		expression();
 
-		if (!isRelop(currToken))
-		{
-			// ERROR
-			printf("Error number 20, relational operator expected.\n");
-			exit(0);
-		}
+		if (!isRelop())
+			error(20);
 		advanceToken();
-		expression(0);
+		expression();
 	}
 }
-void expression(int reg)
+
+void expression(void)
 {
-	int left = reg, right = reg + 1;
-	TokenType addop;
-	// plus or minus
 	if (ensureType(plussym) || ensureType(minussym))
 	{
-		addop = currToken->type;
+		int addop = token->type;
 		advanceToken();
-		if (addop == minussym);
-			emit(NEG, 0, RF[left], 0);	// negate
+		term();
+		if (addop == minussym)
+			emit(NEG, 0, 1, 0);
 	}
-	term(left);
+
+	term();
 
 	while (ensureType(plussym) || ensureType(minussym))
 	{
-		addop = currToken->type;
+		int addop = token->type;
 		advanceToken();
-		term(right);
-
+		term();
 		if (addop == plussym)
-			emit(ADD, 0, RF[left], RF[right]);	// addition
+			emit(ADD, 0, 0, 1);
 		else
-			emit(SUB, 0, RF[left], RF[right]);	// subtraction
+			emit(SUB, 0, 0, 1);
 	}
+	rfIndex = 0;
 }
-void term(int reg)
+void term(void)
 {
-	int left = reg, right = reg + 1;
-	int mulop;
-	factor(left);
+	factor();
+
 	while (ensureType(multsym) || ensureType(slashsym))
 	{
-		mulop = currToken->type;
+		int mulop = token->type;
 		advanceToken();
-		factor(right);
+		factor();
 		if (mulop == multsym)
-			emit(MUL, 0, RF[left], RF[right]);	// multiplication
+			emit(MUL, 0, 0, 1);
 		else
-			emit(DIV, 0, RF[left], RF[right]);	// division
+			emit(DIV, 0, 0, 1);
 	}
 }
-void factor(int reg)
+void factor(void)
 {
 	if (ensureType(identsym))
+	{
+		// lookup in symbol table, load found value into register
+		// if symbol exists
+		int i = lookup(token->identifier);
+		if (i == 0)
+			error(11);
+
+		// const
+		if (table[i].kind == 1)
+			emit(LIT, rfIndex++, 0, table[i].val);
+		// var
+		else if (table[i].kind == 2)
+			emit(LOD, 0, level, table[i].address);
 		advanceToken();
+	}
 	else if (ensureType(numbersym))
 	{
-		RF[reg] = currToken->number;
+		// load literal value into register
+		emit(LIT, 0, 0, token->number);
 		advanceToken();
 	}
 	else if (ensureType(lparentsym))
 	{
 		advanceToken();
-		expression(reg);
-
+		expression();
 		if (!ensureType(rparentsym))
-		{
-			// ERROR
-			printf("Error number 22, right parenthesis missing.\n");
-			exit(0);
-		}
+			error(22);
+		advanceToken();
 	}
 	else
-	{
-		printf("Error number 23, the preceding factor cannot begin with this symbol.\n");
-		exit(0);
-	}
+		error(27);
+}
+
+int isRelop(void)
+{
+	if (token == NULL)
+		return 0;
+	if (token->type == eqlsym ||
+		token->type == neqsym ||
+		token->type == lessym ||
+		token->type == leqsym ||
+		token->type == gtrsym ||
+		token->type == geqsym)
+		return 1;
+	return 0;
 }

@@ -1,6 +1,5 @@
 #include "vm_impl.c"
 #include "scanner.c"
-#include "codegen.h"
 #include "parser.c"
 
 int initDriver(int argc, char **argv)
@@ -16,17 +15,30 @@ int initDriver(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	initDriver(argc, argv);
+
 	// Scan source to tokenList and print source program
 	tokenList = scan(ifp);
-	//printTokenList(tokenList);
+	printTokenList(tokenList);
 
 	// Parse tokenlist (tokenize the source -> symbol table)
-	symbolTable = parse(tokenList);
+	program(tokenList);
+	// No errors if program reaches this point.
 	printf("\nNo errors, program is syntactically correct.\n\n");
-	// Generate code (symtab -> assembly)
-	//printSymbolTable(symbolIndex);
 
+	// Generate code (symtab -> assembly)
+	printSymbolTable(tableIndex);
+
+	Instruction **vmCodes = malloc(sizeof(Instruction) * CODE_SIZE);
+	int i;
+	for (i = 0; i < CODE_SIZE; i++)
+	{
+		vmCodes[i] = malloc(sizeof(Instruction));
+		vmCodes[i]->op = code[i].op;
+		vmCodes[i]->r = code[i].r;
+		vmCodes[i]->l = code[i].l;
+		vmCodes[i]->m = code[i].m;
+	}
 	// Produce VM output (run assembly in VM)
-	vm(code, cx);
+	vm(vmCodes, codeIndex);
 	return 0;
 }
