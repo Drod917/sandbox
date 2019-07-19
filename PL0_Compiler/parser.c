@@ -7,6 +7,7 @@ void program(Token **tokenList);
 void block(void);
 void constDecl(void);
 void varDecl(void);
+void procDecl(void);
 void statement(void);
 void condition(void);
 int isRelop(void);
@@ -48,6 +49,8 @@ void block(void)
 		constDecl();
 	if (ensureType(varsym))
 		varDecl();
+	while (ensureType(procsym))
+		procDecl();
 
 	statement();
 }
@@ -122,6 +125,40 @@ void varDecl(void)
 
 	free(ident);
 }
+void procDecl(void)
+{
+	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+	if (ident == NULL)
+	{
+		printf("NULL PTR ON IDENT MALLOC.\n");
+		exit(0);
+	}
+
+	do
+	{
+		advanceToken();
+		if (!ensureType(identsym))
+			error(4);
+		strcpy(ident, token->identifier);
+
+		advanceToken();
+
+		if (!ensureType(semicolonsym))
+			error(17);
+
+		advanceToken();
+		block();
+
+		if (!ensureType(semicolonsym))
+			error(17);
+
+		// Enter procedure into symbol table
+
+		advanceToken();
+	}
+	while (ensureType(procsym));
+	free(ident);
+}
 void statement(void)
 {
 	if (ensureType(identsym))
@@ -139,6 +176,15 @@ void statement(void)
 		expression();
 
 		emit(STO, 0, level, table[i].address);
+	}
+	else if (ensureType(callsym))
+	{
+		advanceToken();
+
+		if (!ensureType(identsym))
+			error(14);
+
+		advanceToken();
 	}
 	else if (ensureType(beginsym))
 	{
@@ -175,6 +221,12 @@ void statement(void)
 		emit(JPC, 0, 0, 0);
 		statement();
 		code[ctemp].m = codeIndex;
+
+		if (ensureType(elsesym))
+		{
+			advanceToken();
+			statement();
+		}
 	}
 	else if (ensureType(whilesym))
 	{
@@ -190,6 +242,19 @@ void statement(void)
 		statement();
 		emit(JMP, 0, 0, cx1);
 		code[cx2].m = codeIndex;
+	}
+	else if (ensureType(readsym))
+	{
+		advanceToken();
+
+		if (!ensureType(identsym))
+			error(27);
+		advanceToken();
+	}
+	else if(ensureType(writesym))
+	{
+		advanceToken();
+		expression();
 	}
 }
 void condition(void)
