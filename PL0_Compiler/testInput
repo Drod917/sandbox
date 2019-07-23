@@ -1,16 +1,27 @@
-var f, n;
-procedure fact;
-	var ans1;
+/* Should fill entire stack without issue, given stack height of 23 */
+var a, b, c, d, e;
+
+procedure x;
+	var f, g, h, i;
+	procedure y;
+		var j, k;
+		begin
+			j := 10;
+			k := i + b /* 11 */
+		end;	
 	begin
-		ans1 := n;
-		n := n - 1;
-		if n = 0 then f := 1;
-		if n > 0 then call fact;
-		f := f * ans1
+		f := 6;
+		g := 7;
+		h := 8;
+		i := 9;
+		call y
 	end;
 
 begin
-	n := 3;
-	call fact;
-	write f
+	a := 1;
+	b := 2;
+	c := 3;
+	d := 4;
+	e := 5;
+	call x
 end.

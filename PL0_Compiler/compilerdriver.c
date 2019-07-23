@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	printf("\nNo errors, program is syntactically correct.\n\n");
 
 	// Generate code (symtab -> assembly)
-	//printSymbolTable(tableIndex);
+	printSymbolTable(tableIndex);
 
 	// Convert code to legacy format (double pointer...)
 	Instruction **vmCodes = malloc(sizeof(Instruction) * CODE_SIZE);

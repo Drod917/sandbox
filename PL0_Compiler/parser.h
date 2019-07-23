@@ -83,27 +83,6 @@ Symbol *newSymbol(int kind, char * identifier, int val)
 	return newSymbol;
 }
 
-// void enter(int kind, char *name, int val, Token *currToken)
-// {
-// 	if (currToken == NULL)
-// 	{
-// 		printf("NULL POINTER ON SYMBOL TABLE INSERTION.\n");
-// 		exit(0);
-// 	}
-// 	if (ensureType(constsym))
-// 	{
-// 		// enter const symbol to table
-// 	}
-// 	else if (ensureType(varsym))
-// 	{
-// 		// enter var symbol to table
-// 	}
-// 	else if (ensureType(procsym))
-// 	{
-// 		// enter proc symbol to table
-// 	}
-// }
-
 int ensureType(TokenType type)
 {
 	if (currToken == NULL)

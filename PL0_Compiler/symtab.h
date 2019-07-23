@@ -67,7 +67,7 @@ void emit(OP opr, int r, int l, int m)
 		codeIndex++;
 	}
 }
-// Kind: 1 = const, 2 = var
+// Kind: 1 = const, 2 = var, 3 = procedure
 void enter(int kind, char *name, int val, int level, int addr)
 {
 	address++;

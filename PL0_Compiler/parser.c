@@ -45,12 +45,19 @@ void program(Token **tokenList)
 
 void block(void)
 {
+
 	if (ensureType(constsym))
+	{
 		constDecl();
+	}
 	if (ensureType(varsym))
+	{
 		varDecl();
+	}
 	while (ensureType(procsym))
+	{
 		procDecl();
+	}
 
 	statement();
 }
@@ -145,14 +152,17 @@ void procDecl(void)
 
 		if (!ensureType(semicolonsym))
 			error(17);
-
 		advanceToken();
+
+		address = 4;
+		// Enter procedure into symbol table
+		enter(3, ident, 0, level, address);
+
+		level++;
 		block();
 
 		if (!ensureType(semicolonsym))
 			error(17);
-
-		// Enter procedure into symbol table
 
 		advanceToken();
 	}
@@ -183,6 +193,13 @@ void statement(void)
 
 		if (!ensureType(identsym))
 			error(14);
+
+		int i = lookup(token->identifier);
+		if (i == 0)
+			error(11);
+		if (table[i].kind != 3)
+			error(15);
+		//emit(CAL, 0, level, table[i].address);
 
 		advanceToken();
 	}
@@ -249,12 +266,17 @@ void statement(void)
 
 		if (!ensureType(identsym))
 			error(27);
+
+		emit(SIO2, rfIndex, 0, 2);
+
 		advanceToken();
 	}
 	else if(ensureType(writesym))
 	{
 		advanceToken();
 		expression();
+
+		emit(SIO1, rfIndex, 0, 1);
 	}
 }
 void condition(void)
