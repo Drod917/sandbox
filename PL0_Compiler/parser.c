@@ -6,7 +6,7 @@ void advanceToken(void);
 void program(Token **tokenList);
 void block(void);
 void constDecl(void);
-void varDecl(void);
+void varDecl(int *dataIndex);
 void procDecl(void);
 void statement(void);
 void condition(void);
@@ -16,7 +16,7 @@ void expression(void);
 void term(void);
 void factor(void);
 
-int addr1, addr2;
+int numConsts = 0, numVars = 0;
 
 void program(Token **tokenList)
 {
@@ -45,6 +45,10 @@ void program(Token **tokenList)
 
 void block(void)
 {
+	int *dataIndex = malloc(sizeof(int));
+	*dataIndex = 4;
+	//table[tableIndex].address = codeIndex;
+	emit(JMP, 0, 0, sp - tableIndex);
 
 	if (ensureType(constsym))
 	{
@@ -52,16 +56,24 @@ void block(void)
 	}
 	if (ensureType(varsym))
 	{
-		varDecl();
+		varDecl(dataIndex);
 	}
+
 	while (ensureType(procsym))
 	{
 		procDecl();
 	}
+	emit(INC, 0, 0, *dataIndex); // + 4 for fv/sl/dl/ra
+
+	int cx0 = 0;
+	numConsts = 0;
+	numVars = 0;
 
 	statement();
+
+	emit(RTN, 0, 0, 0);
 }
-void constDecl(void)
+void constDecl()
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
 	int val;
@@ -90,7 +102,8 @@ void constDecl(void)
 
 		// Store the const in the stack
 		emit(LIT, 0, 0, val);
-		emit(STO, 0, level, address - 1);
+		emit(STO, 0, 0, address - 1);
+
 	}
 	while (ensureType(commasym));
 
@@ -100,7 +113,7 @@ void constDecl(void)
 
 	free(ident);
 }
-void varDecl(void)
+void varDecl(int *dataIndex)
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
 	if (ident == NULL)
@@ -120,6 +133,8 @@ void varDecl(void)
 
 		// Enter var into symbol table
 		enter(2, ident, 0, level, address);
+
+		(*dataIndex)++;
 	}
 	while(ensureType(commasym));
 
@@ -185,7 +200,7 @@ void statement(void)
 		advanceToken();
 		expression();
 
-		emit(STO, 0, level, table[i].address);
+		emit(STO, 0, table[i].level, table[i].address);
 	}
 	else if (ensureType(callsym))
 	{
@@ -199,7 +214,8 @@ void statement(void)
 			error(11);
 		if (table[i].kind != 3)
 			error(15);
-		//emit(CAL, 0, level, table[i].address);
+
+		emit(CAL, 0, table[i].level, address - 4);
 
 		advanceToken();
 	}
@@ -408,7 +424,7 @@ void factor(void)
 			emit(LIT, rfIndex, 0, table[i].val);
 		// var
 		else if (table[i].kind == 2)
-			emit(LOD, rfIndex, level, table[i].address);
+			emit(LOD, rfIndex, table[i].level, table[i].address);
 		rfIndex += 1;
 		advanceToken();
 	}
