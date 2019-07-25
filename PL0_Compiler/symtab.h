@@ -1,12 +1,10 @@
 #include <string.h>
 
 #define MAX_SYMBOL_TABLE_SIZE 1024
-#define MAX_LEXI_LEVELS 3
 #define CODE_SIZE 1024
 
 void emit(OP opr, int r, int l, int m);
 void enter(int kind, char *name, int num, int *ptx, int *pdx, int lev);
-//void enter(int kind, char *name, int val, int level, int address);
 int lookup(char *name, int *ptx);
 void del(char *name);
 void advanceToken(void);
@@ -215,6 +213,9 @@ void error(int errorNo)
 			break;
 		case 27:
 			printf("Error number 27. Factor must be a number or identifier.\n");
+			break;
+		case 28:
+			printf("Error number 28. Maximum lexicographical levels reached.\n");
 			break;
 		default:
 			break;

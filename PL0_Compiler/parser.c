@@ -41,8 +41,8 @@ void program(Token **tokenList)
 
 void block(int lev, int tx)
 {
-	if (level > MAX_LEXI_LEVELS);
-		//error(26);
+	if (lev > MAX_LEXI_LEVELS)
+		error(28);
 	int dx, tx0, cx0;
 	dx = 4;
 	tx0 = tx;
@@ -71,6 +71,7 @@ void block(int lev, int tx)
 
 	if (ensureType(periodsym))
 		return;
+
 	emit(RTN, 0, 0, 0);
 }
 void constDecl(int lev, int *ptx, int *pdx)
