@@ -1,0 +1,26 @@
+const a = 1, b = 2, c = 3;
+var x, y, z;
+procedure first;
+	var d, e, f;
+	procedure second;
+		var g, h, i;
+		begin
+			write a
+		end;
+	begin
+		if a > b then
+			write a
+		else
+			write b;
+		write c;
+		call second;
+		d := a + b;
+		d := a - b;
+		d := a * b;
+		d := a / b
+	end;
+begin
+	call first;
+	read x;
+	write x
+end.
