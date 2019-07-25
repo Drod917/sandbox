@@ -1,9 +1,13 @@
+#include <string.h>
+
 #define MAX_SYMBOL_TABLE_SIZE 1024
+#define MAX_LEXI_LEVELS 3
 #define CODE_SIZE 1024
 
 void emit(OP opr, int r, int l, int m);
-void enter(int kind, char *name, int val, int level, int address);
-int lookup(char *name);
+void enter(int kind, char *name, int num, int *ptx, int *pdx, int lev);
+//void enter(int kind, char *name, int val, int level, int address);
+int lookup(char *name, int *ptx);
 void del(char *name);
 void advanceToken(void);
 void printSymbolTable(int size);
@@ -24,7 +28,7 @@ Symbol table[MAX_SYMBOL_TABLE_SIZE];
 Instruction code[CODE_SIZE];
 
 int tokenIndex,
-	tableIndex,
+	//tableIndex,
 	rfIndex,
 	codeIndex,
 	level,
@@ -67,31 +71,49 @@ void emit(OP opr, int r, int l, int m)
 		codeIndex++;
 	}
 }
-// Kind: 1 = const, 2 = var, 3 = procedure
-void enter(int kind, char *name, int val, int level, int addr)
-{
-	address++;
-	Symbol newEntry;
-	newEntry.kind = kind;
-	newEntry.name = malloc(sizeof(char) * MAX_IDENT_LENGTH);
-	strcpy(newEntry.name, name);
-	newEntry.val = val;
-	newEntry.level = level;
-	newEntry.address = addr;
-	newEntry.mark = 0;
 
-	table[tableIndex++] = newEntry;
+void enter(int kind, char *name, int num, int *ptx, int *pdx, int lev)
+{
+	(*ptx)++;
+	table[*ptx].kind = kind;
+	table[*ptx].name = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+	strcpy(table[*ptx].name, name);
+	if (kind == 1)		// const
+		table[*ptx].val = num;
+	else if (kind == 2)	// var
+	{
+		table[*ptx].level = lev;
+		table[*ptx].address = (*pdx);
+		(*pdx)++;
+	}
+	else				// proc
+		table[*ptx].level = lev;
 }
+// // Kind: 1 = const, 2 = var, 3 = procedure
+// void enter(int kind, char *name, int val, int level, int addr)
+// {
+// 	address++;
+// 	Symbol newEntry;
+// 	newEntry.kind = kind;
+// 	newEntry.name = malloc(sizeof(char) * MAX_IDENT_LENGTH);
+// 	strcpy(newEntry.name, name);
+// 	newEntry.val = val;
+// 	newEntry.level = level;
+// 	newEntry.address = addr;
+// 	newEntry.mark = 0;
+
+// 	table[tableIndex++] = newEntry;
+// }
 
 void del(char *name)
 {
 
 }
 // aka lookup
-int lookup(char *name)
+int lookup(char *name, int *ptx)
 {
-	int i;
-	for (i = 1; i < tableIndex; i++)
+	int i, n = (*ptx);
+	for (i = 1; i <= n; i++)
 	{
 		if (strcmp(table[i].name, name) == 0)
 			return i;

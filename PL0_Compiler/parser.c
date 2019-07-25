@@ -2,21 +2,18 @@
 
 // fix the * \n / error in scanner
 void advanceToken(void);
-
 void program(Token **tokenList);
-void block(void);
-void constDecl(void);
-void varDecl(int *dataIndex);
-void procDecl(void);
-void statement(void);
-void condition(void);
+void block(int lev, int tx);
+void constDecl(int lev, int *ptx, int *pdx);
+void varDecl(int lev, int *ptx, int *pdx);
+void procDecl(int lev, int *ptx, int *pdx);
+void statement(int lev, int *ptx);
+void condition(int lev, int *ptx);
 int isRelop(void);
 void relOp(TokenType type);
-void expression(void);
-void term(void);
-void factor(void);
-
-int numConsts = 0, numVars = 0;
+void expression(int lev, int *ptx);
+void term(int lev, int *ptx);
+void factor(int lev, int *ptx);
 
 void program(Token **tokenList)
 {
@@ -26,54 +23,57 @@ void program(Token **tokenList)
 		exit(0);
 	}
 	tokenIndex = -1;
-	tableIndex = 1;
 	rfIndex = 0;
 	codeIndex = 0;
-	level = 0;
 	// Addresses 0, 1, 2, 3 are reserved for FV, SL, DL, RA
 	address = 4;
 	tokens = tokenList;
 
 	advanceToken();
-	block();
+	block(0, 0);
 	if (!ensureType(periodsym))
 		error(9);
+
 	table[1].level = -1;
 	table[1].address = -1;
 	emit(SIO3, 0, 0, 3);
 }
 
-void block(void)
+void block(int lev, int tx)
 {
-	int *dataIndex = malloc(sizeof(int));
-	*dataIndex = 4;
-	//table[tableIndex].address = codeIndex;
-	emit(JMP, 0, 0, sp - tableIndex);
+	if (level > MAX_LEXI_LEVELS);
+		//error(26);
+	int dx, tx0, cx0;
+	dx = 4;
+	tx0 = tx;
+	table[tx].address = codeIndex;
+	emit(JMP, 0, 0, codeIndex);
 
 	if (ensureType(constsym))
 	{
-		constDecl();
+		constDecl(lev, &tx, &dx);
 	}
 	if (ensureType(varsym))
 	{
-		varDecl(dataIndex);
+		varDecl(lev, &tx, &dx);
 	}
 
 	while (ensureType(procsym))
 	{
-		procDecl();
+		procDecl(lev, &tx, &dx);
 	}
-	emit(INC, 0, 0, *dataIndex); // + 4 for fv/sl/dl/ra
+	code[table[tx0].address].m = codeIndex;
+	table[tx0].address = codeIndex;
+	cx0 = codeIndex;
+	emit(INC, 0, 0, dx); // + 4 for fv/sl/dl/ra
 
-	int cx0 = 0;
-	numConsts = 0;
-	numVars = 0;
+	statement(lev, &tx);
 
-	statement();
-
+	if (ensureType(periodsym))
+		return;
 	emit(RTN, 0, 0, 0);
 }
-void constDecl()
+void constDecl(int lev, int *ptx, int *pdx)
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
 	int val;
@@ -98,11 +98,11 @@ void constDecl()
 		advanceToken();
 
 		// Enter const into symbol table
-		enter(1, ident, val, level, address);
+		enter(1, ident, val, ptx, pdx, lev);
 
-		// Store the const in the stack
-		emit(LIT, 0, 0, val);
-		emit(STO, 0, 0, address - 1);
+		// Store the const in the stack (DONT)
+		// emit(LIT, 0, 0, val);
+		// emit(STO, 0, 0, address - 1);
 
 	}
 	while (ensureType(commasym));
@@ -113,7 +113,7 @@ void constDecl()
 
 	free(ident);
 }
-void varDecl(int *dataIndex)
+void varDecl(int lev, int *ptx, int *pdx)
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
 	if (ident == NULL)
@@ -132,9 +132,7 @@ void varDecl(int *dataIndex)
 		advanceToken();
 
 		// Enter var into symbol table
-		enter(2, ident, 0, level, address);
-
-		(*dataIndex)++;
+		enter(2, ident, 0, ptx, pdx, lev);
 	}
 	while(ensureType(commasym));
 
@@ -147,7 +145,7 @@ void varDecl(int *dataIndex)
 
 	free(ident);
 }
-void procDecl(void)
+void procDecl(int lev, int *ptx, int *pdx)
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
 	if (ident == NULL)
@@ -171,11 +169,8 @@ void procDecl(void)
 
 		address = 4;
 		// Enter procedure into symbol table
-		enter(3, ident, 0, level, address);
-
-		level++;
-		block();
-
+		enter(3, ident, 0, ptx, pdx, lev);
+		block(lev + 1, *ptx);
 		if (!ensureType(semicolonsym))
 			error(17);
 
@@ -184,11 +179,13 @@ void procDecl(void)
 	while (ensureType(procsym));
 	free(ident);
 }
-void statement(void)
+void statement(int lev, int *ptx)
 {
+	int i, cx1, cx2;
+
 	if (ensureType(identsym))
 	{
-		int i = lookup(token->identifier);
+		i = lookup(token->identifier, ptx);
 		if (i == 0)
 			error(11);
 		if (table[i].kind != identsym)
@@ -198,9 +195,9 @@ void statement(void)
 		if (!ensureType(becomessym))
 			error(13);
 		advanceToken();
-		expression();
+		expression(lev, ptx);
 
-		emit(STO, 0, table[i].level, table[i].address);
+		emit(STO, 0, lev - table[i].level, table[i].address);
 	}
 	else if (ensureType(callsym))
 	{
@@ -209,13 +206,13 @@ void statement(void)
 		if (!ensureType(identsym))
 			error(14);
 
-		int i = lookup(token->identifier);
+		int i = lookup(token->identifier, ptx);
 		if (i == 0)
 			error(11);
 		if (table[i].kind != 3)
 			error(15);
 
-		emit(CAL, 0, table[i].level, address - 4);
+		emit(CAL, 0, lev - table[i].level, table[i].address);
 
 		advanceToken();
 	}
@@ -225,7 +222,7 @@ void statement(void)
 		// begin found but no statement
 		if (ensureType(endsym))
 			error(7);
-		statement();
+		statement(lev, ptx);
 
 		// Catch statements with no semicolon separation
 		if (!ensureType(semicolonsym) && !ensureType(endsym))
@@ -236,7 +233,7 @@ void statement(void)
 			// Cannot have 'end' following a semicolon in this grammar
 			if (ensureType(endsym))
 				error(19);
-			statement();
+			statement(lev, ptx);
 		}
 		if (!ensureType(endsym))
 			error(26);
@@ -245,34 +242,35 @@ void statement(void)
 	else if (ensureType(ifsym))
 	{
 		advanceToken();
-		condition();
+		condition(lev, ptx);
 
 		if (!ensureType(thensym))
 			error(16);
 		advanceToken();
-		int ctemp = codeIndex;
+		cx1 = codeIndex;
 		emit(JPC, 0, 0, 0);
-		statement();
-		code[ctemp].m = codeIndex;
-
+		statement(lev, ptx);
 		if (ensureType(elsesym))
 		{
 			advanceToken();
-			statement();
+			code[cx1].m = codeIndex + 1;
+			cx1 = codeIndex;
+			emit(JMP, 0, 0, cx1);
+			statement(lev, ptx);
 		}
+		code[cx1].m = codeIndex;
 	}
 	else if (ensureType(whilesym))
 	{
-		int cx1 = codeIndex;
+		cx1 = codeIndex;
 		advanceToken();
-		condition();
-
-		int cx2 = codeIndex;
+		condition(lev, ptx);
+		cx2 = codeIndex;
 		emit(JPC, 0, 0, 0);
 		if (!ensureType(dosym))
 			error(18);
 		advanceToken();
-		statement();
+		statement(lev, ptx);
 		emit(JMP, 0, 0, cx1);
 		code[cx2].m = codeIndex;
 	}
@@ -280,32 +278,37 @@ void statement(void)
 	{
 		advanceToken();
 
+		emit(SIO2, rfIndex, 0, 2);
 		if (!ensureType(identsym))
 			error(27);
-
-		emit(SIO2, rfIndex, 0, 2);
+		i = lookup(token->identifier, ptx);
+		if (i == 0)
+			error(11);
+		else if (table[i].kind != 2)
+			error(12);
+		emit(STO, rfIndex, lev - table[i].level, table[i].address);
 
 		advanceToken();
 	}
 	else if(ensureType(writesym))
 	{
 		advanceToken();
-		expression();
+		expression(lev, ptx);
 
 		emit(SIO1, rfIndex, 0, 1);
 	}
 }
-void condition(void)
+void condition(int lev, int *ptx)
 {
 	if (ensureType(oddsym))
 	{
 		advanceToken();
-		expression();
+		expression(lev, ptx);
 		emit(ODD, rfIndex, rfIndex, 0);
 	}
 	else
 	{
-		expression();
+		expression(lev, ptx);
 		// retrieved last val found
 
 		if (!isRelop())
@@ -314,7 +317,7 @@ void condition(void)
 
 		advanceToken();
 		rfIndex += 1;
-		expression();
+		expression(lev, ptx);
 		relOp(relop);
 	}
 }
@@ -369,24 +372,24 @@ int isRelop(void)
 	}
 	return 0;
 }
-void expression(void)
+void expression(int lev, int *ptx)
 {
 	if (ensureType(plussym) || ensureType(minussym))
 	{
 		int addop = token->type;
 		advanceToken();
-		term();
+		term(lev, ptx);
 		if (addop == minussym)
 			emit(NEG, 0, 1, 0);
 	}
 
-	term();
+	term(lev, ptx);
 
 	while (ensureType(plussym) || ensureType(minussym))
 	{
 		int addop = token->type;
 		advanceToken();
-		term();
+		term(lev, ptx);
 		if (addop == plussym)
 			emit(ADD, 0, 0, 1);
 		else
@@ -394,37 +397,43 @@ void expression(void)
 	}
 	rfIndex = 0;
 }
-void term(void)
+void term(int lev, int *ptx)
 {
-	factor();
+	factor(lev, ptx);
 
 	while (ensureType(multsym) || ensureType(slashsym))
 	{
 		int mulop = token->type;
 		advanceToken();
-		factor();
+		factor(lev, ptx);
 		if (mulop == multsym)
 			emit(MUL, 0, 0, 1);
 		else
 			emit(DIV, 0, 0, 1);
 	}
 }
-void factor(void)
+void factor(int lev, int *ptx)
 {
+	int kind, i, level, adr, val;
+
 	if (ensureType(identsym))
 	{
 		// lookup in symbol table, load found value into register
 		// if symbol exists
-		int i = lookup(token->identifier);
+		i = lookup(token->identifier, ptx);
 		if (i == 0)
 			error(11);
-
+		kind = table[i].kind;
+		level = table[i].level;
+		adr = table[i].address;
+		val = table[i].val;
 		// const
 		if (table[i].kind == 1)
 			emit(LIT, rfIndex, 0, table[i].val);
 		// var
 		else if (table[i].kind == 2)
-			emit(LOD, rfIndex, table[i].level, table[i].address);
+			emit(LOD, rfIndex, lev - table[i].level, table[i].address);
+
 		rfIndex += 1;
 		advanceToken();
 	}
@@ -438,7 +447,7 @@ void factor(void)
 	else if (ensureType(lparentsym))
 	{
 		advanceToken();
-		expression();
+		expression(lev, ptx);
 		if (!ensureType(rparentsym))
 			error(22);
 		advanceToken();
