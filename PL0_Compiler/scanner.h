@@ -113,7 +113,7 @@ Token *newIdent(int type, char *identifier)
 	Token *token = allocToken();
 	token->type = type;
 	token->number = 0;
-	int identLength = strlen(identifier) + 1;
+	int identLength = strlen(identifier);
 	if (identLength > MAX_IDENT_LENGTH)
 	{
 		fprintf(stderr, "identifier '%s' too long\n", identifier);
