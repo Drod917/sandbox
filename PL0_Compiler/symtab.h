@@ -44,7 +44,7 @@ void advanceToken(void)
 		//printf("TOKEN IS NOW NULL.\n");
 	}
 	// else
-	// 	printf("Token is now %d\n", token->type);
+	// 	printf("Token is now %s\n", token->identifier);
 }
 int ensureType(TokenType type)
 {
@@ -111,7 +111,16 @@ void del(char *name)
 int lookup(char *name, int *ptx)
 {
 	int i, n = (*ptx);
-	for (i = 1; i <= n; i++)
+
+	// Old way searches back -> front
+	// for (i = 1; i <= n; i++)
+	// {
+	// 	if (strcmp(table[i].name, name) == 0)
+	// 		return i;
+	// }
+
+	// New way searches front -> back, to get last used vars in scope
+	for (i = n; i >= 1; i--)
 	{
 		if (strcmp(table[i].name, name) == 0)
 			return i;

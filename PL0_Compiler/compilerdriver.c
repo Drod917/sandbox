@@ -40,5 +40,8 @@ int main(int argc, char **argv)
 	}
 	// Produce VM output (run assembly in VM)
 	vm(vmCodes, codeIndex);
+
+	//printSymbolTable(codeIndex);
+
 	return 0;
 }

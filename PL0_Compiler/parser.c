@@ -1,6 +1,5 @@
 #include "symtab.h"
 
-// fix the * \n / error in scanner
 void advanceToken(void);
 void program(Token **tokenList);
 void block(int lev, int tx);
@@ -34,8 +33,8 @@ void program(Token **tokenList)
 	if (!ensureType(periodsym))
 		error(9);
 
-	table[1].level = -1;
-	table[1].address = -1;
+	// table[1].level = -1;
+	// table[1].address = -1;
 	emit(SIO3, 0, 0, 3);
 }
 
@@ -43,6 +42,9 @@ void block(int lev, int tx)
 {
 	if (lev > MAX_LEXI_LEVELS)
 		error(28);
+
+	//int prev_sp = sp;
+
 	int dx, tx0, cx0;
 	dx = 4;
 	tx0 = tx;
@@ -65,7 +67,7 @@ void block(int lev, int tx)
 	code[table[tx0].address].m = codeIndex;
 	table[tx0].address = codeIndex;
 	cx0 = codeIndex;
-	emit(INC, 0, 0, dx); // + 4 for fv/sl/dl/ra
+	emit(INC, 0, 0, dx); 
 
 	statement(lev, &tx);
 
@@ -73,6 +75,7 @@ void block(int lev, int tx)
 		return;
 
 	emit(RTN, 0, 0, 0);
+	//sp = prev_sp;
 }
 void constDecl(int lev, int *ptx, int *pdx)
 {
@@ -232,8 +235,8 @@ void statement(int lev, int *ptx)
 		{
 			advanceToken();
 			// Cannot have 'end' following a semicolon in this grammar
-			if (ensureType(endsym))
-				error(19);
+			// if (ensureType(endsym))
+			// 	error(19);
 			statement(lev, ptx);
 		}
 		if (!ensureType(endsym))
@@ -395,7 +398,9 @@ void expression(int lev, int *ptx)
 			emit(ADD, 0, 0, 1);
 		else
 			emit(SUB, 0, 0, 1);
+		rfIndex -= 1;
 	}
+	// Be careful with this here when it comes to ((())) nested expressions
 	rfIndex = 0;
 }
 void term(int lev, int *ptx)
@@ -411,6 +416,7 @@ void term(int lev, int *ptx)
 			emit(MUL, 0, 0, 1);
 		else
 			emit(DIV, 0, 0, 1);
+		rfIndex -= 1;
 	}
 }
 void factor(int lev, int *ptx)
