@@ -3,13 +3,17 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 
+# Daniel Rodriguez, 2020
+# -----------------------
 # This program takes as input 2 integers, and returns whether the
-# absolute difference of them is even or odd using a neural network.
+# absolute difference of them is even or odd using an absolutely 
+# overkill neural network.
+
 # Inputs to the network are integers in their binary representation in
 # order for the network to learn the feature that differentiates odd 
 # numbers from even (the rightmost bit).
 
-# Conversion function (integer -> binary). Returns a list as np array.
+# Conversion function (integer -> binary). Returns a list as an np array.
 # Formats int(x) -> binary repr -> string -> list -> np.array
 # then maps (int) over list
 # Creates a new list of ints from original list
@@ -66,11 +70,13 @@ for i in range(trainExamples):
     else:
         ys[i] = 0
 
-# Train the network on the 2 feature input data, and the labels
-model.fit(xs, ys, epochs=15, batch_size=128)
-
-# Save state
-model.save('absModel.h5')
+# Attempt to load the model, otherwise create it
+try:
+    keras.models.load_model('absModel.h5')
+except:
+    print("No model found, training network...")
+    model.fit(xs, ys, epochs=10, batch_size=128)
+    model.save('absModel.h5')
 
 while(True):
     # Set int value, create array of shape (1,32), set that row to the 
