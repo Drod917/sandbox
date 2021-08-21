@@ -16,12 +16,15 @@ int main(int argc, char **argv)
 {
 	initDriver(argc, argv);
 
-	// Scan source to tokenList and print source program
+	// Tokenize the source
 	tokenList = scan(ifp);
+
+    // Print the lexeme table
 	//printTokenList(tokenList);
 
-	// Parse tokenlist (tokenize the source -> symbol table)
+	// Parse the tokenlist (AST / Symbol table creation)
 	program(tokenList);
+
 	// No errors if program reaches this point.
 	printf("\nNo errors, program is syntactically correct.\n\n");
 

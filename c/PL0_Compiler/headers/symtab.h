@@ -21,7 +21,6 @@ Symbol table[MAX_SYMBOL_TABLE_SIZE];
 Instruction code[CODE_SIZE];
 
 int tokenIndex,
-	//tableIndex,
 	rfIndex,
 	codeIndex,
 	level,

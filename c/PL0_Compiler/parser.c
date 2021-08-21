@@ -10,6 +10,7 @@ void program(Token **tokenList)
 	tokenIndex = -1;
 	rfIndex = 0;
 	codeIndex = 0;
+
 	// Addresses 0, 1, 2, 3 are reserved for FV, SL, DL, RA
 	address = 4;
 	tokens = tokenList;
@@ -19,8 +20,6 @@ void program(Token **tokenList)
 	if (!ensureType(periodsym))
 		error(9);
 
-	// table[1].level = -1;
-	// table[1].address = -1;
 	emit(SIO3, 0, 0, 3);
 }
 
@@ -28,8 +27,6 @@ void block(int lev, int tx)
 {
 	if (lev > MAX_LEXI_LEVELS)
 		error(28);
-
-	//int prev_sp = sp;
 
 	int dx, tx0, cx0;
 	dx = 4;
@@ -90,11 +87,6 @@ void constDecl(int lev, int *ptx, int *pdx)
 
 		// Enter const into symbol table
 		enter(1, ident, val, ptx, pdx, lev);
-
-		// Store the const in the stack (DONT)
-		// emit(LIT, 0, 0, val);
-		// emit(STO, 0, 0, address - 1);
-
 	}
 	while (ensureType(commasym));
 
@@ -213,7 +205,7 @@ void statement(int lev, int *ptx)
 	else if (ensureType(beginsym))
 	{
 		advanceToken();
-		// begin found but no statement
+		// 'begin' found but no statement
 		if (ensureType(endsym))
 			error(7);
 		statement(lev, ptx);
@@ -225,8 +217,8 @@ void statement(int lev, int *ptx)
 		{
 			advanceToken();
 			// Cannot have 'end' following a semicolon in this grammar
-			// if (ensureType(endsym))
-			// 	error(19);
+			if (ensureType(endsym))
+				error(7);
 			statement(lev, ptx);
 		}
 		if (!ensureType(endsym))
