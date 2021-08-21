@@ -1,18 +1,4 @@
-#include "symtab.h"
-
-void advanceToken(void);
-void program(Token **tokenList);
-void block(int lev, int tx);
-void constDecl(int lev, int *ptx, int *pdx);
-void varDecl(int lev, int *ptx, int *pdx);
-void procDecl(int lev, int *ptx, int *pdx);
-void statement(int lev, int *ptx);
-void condition(int lev, int *ptx);
-int isRelop(void);
-void relOp(TokenType type);
-void expression(int lev, int *ptx);
-void term(int lev, int *ptx);
-void factor(int lev, int *ptx);
+#include "headers/parser.h"
 
 void program(Token **tokenList)
 {
@@ -77,6 +63,7 @@ void block(int lev, int tx)
 	emit(RTN, 0, 0, 0);
 	//sp = prev_sp;
 }
+
 void constDecl(int lev, int *ptx, int *pdx)
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
@@ -117,6 +104,7 @@ void constDecl(int lev, int *ptx, int *pdx)
 
 	free(ident);
 }
+
 void varDecl(int lev, int *ptx, int *pdx)
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
@@ -149,6 +137,7 @@ void varDecl(int lev, int *ptx, int *pdx)
 
 	free(ident);
 }
+
 void procDecl(int lev, int *ptx, int *pdx)
 {
 	char *ident = malloc(sizeof(char) * MAX_IDENT_LENGTH);
@@ -183,6 +172,7 @@ void procDecl(int lev, int *ptx, int *pdx)
 	while (ensureType(procsym));
 	free(ident);
 }
+
 void statement(int lev, int *ptx)
 {
 	int i, cx1, cx2;
@@ -302,6 +292,7 @@ void statement(int lev, int *ptx)
 		emit(SIO1, rfIndex, 0, 1);
 	}
 }
+
 void condition(int lev, int *ptx)
 {
 	if (ensureType(oddsym))
@@ -325,6 +316,7 @@ void condition(int lev, int *ptx)
 		relOp(relop);
 	}
 }
+
 void relOp(TokenType type)
 {
 	TokenType opType = type;
@@ -352,6 +344,7 @@ void relOp(TokenType type)
 			break;
 	}
 }
+
 int isRelop(void)
 {
 	if (token == NULL)
@@ -376,6 +369,7 @@ int isRelop(void)
 	}
 	return 0;
 }
+
 void expression(int lev, int *ptx)
 {
 	if (ensureType(plussym) || ensureType(minussym))
@@ -403,6 +397,7 @@ void expression(int lev, int *ptx)
 	// Be careful with this here when it comes to ((())) nested expressions
 	rfIndex = 0;
 }
+
 void term(int lev, int *ptx)
 {
 	factor(lev, ptx);
@@ -419,6 +414,7 @@ void term(int lev, int *ptx)
 		rfIndex -= 1;
 	}
 }
+
 void factor(int lev, int *ptx)
 {
 	int kind, i, level, adr, val;

@@ -1,6 +1,6 @@
 To compile in gcc:
 
-gcc compilerdriver.c
+gcc *.c
 
 To run:
 
@@ -8,4 +8,4 @@ To run:
 
 Where <filename> is your source code.
 
-There is an included test file, testInput, which should run synactically correct.
+There are several included tests found in /inputs/.

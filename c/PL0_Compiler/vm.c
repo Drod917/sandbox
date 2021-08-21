@@ -1,44 +1,7 @@
 // Daniel Rodriguez (NID da268008)
 // COP3402 (Summer)
 // Professor Montagne
-
-// PREPROCESSOR DIRECTIVES
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-// CONSTANTS
-#define MAX_STACK_HEIGHT 23
-#define MAX_CODE_LENGTH 500
-#define MAX_LEXI_LEVELS 3
-#define OP_LENGTH 4
-#define REGISTER_FILE_SIZE 8
-
-// STRUCT DEFINITIONS
-typedef enum isaOPS
-{
-	LIT = 1, RTN = 2, LOD = 3, STO = 4, CAL = 5, INC = 6,
-	JMP = 7, JPC = 8, SIO1 = 9, SIO2 = 10, SIO3 = 11, NEG = 12,
-	ADD = 13, SUB = 14, MUL = 15, DIV = 16, ODD = 17,
-	MOD = 18, EQL = 19, NEQ = 20, LSS = 21, LEQ = 22,
-	GTR = 23, GEQ = 24
-}OP;
-
-typedef struct Instruction
-{
-	OP op;	// opcode
-	int r;	// R
-	int l;	// L
-	int m;	// M
-}Instruction;
-
-// FUNCTION PROTOTYPES
-int main(int argc, char **argv);
-int base(int l, int base);
-void printState();
-Instruction **parseInstructions(char *filename);
-void printVM(FILE *ifp);
-void execute();
+#include "headers/vm.h"
 
 // These are the CPU's registers, and memory
 int RF[REGISTER_FILE_SIZE], stack[MAX_STACK_HEIGHT];
@@ -48,8 +11,7 @@ int running = 1,
 	pc = 0,
 	gp = -1,
 	sp = MAX_STACK_HEIGHT;
-Instruction **instructions;
-Instruction *ir;
+
 
 // FUNCTION DEFINITIONS
 // Find base L levels down

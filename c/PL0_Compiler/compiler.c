@@ -1,6 +1,6 @@
-#include "vm_impl.c"
-#include "scanner.c"
-#include "parser.c"
+#include "headers/vm.h"
+#include "headers/scanner.h"
+#include "headers/parser.h"
 
 int initDriver(int argc, char **argv)
 {

@@ -1,38 +1,4 @@
-#include <string.h>
-
-#define MAX_SYMBOL_TABLE_SIZE 1024
-#define CODE_SIZE 1024
-
-void emit(OP opr, int r, int l, int m);
-void enter(int kind, char *name, int num, int *ptx, int *pdx, int lev);
-int lookup(char *name, int *ptx);
-void del(char *name);
-void advanceToken(void);
-void printSymbolTable(int size);
-int ensureType(TokenType type);
-void error(int errorNo);
-
-typedef struct
-{
-	int kind;
-	char *name;
-	int val;
-	int level;
-	int address;
-	int mark;
-}Symbol;
-
-Symbol table[MAX_SYMBOL_TABLE_SIZE];
-Instruction code[CODE_SIZE];
-
-int tokenIndex,
-	//tableIndex,
-	rfIndex,
-	codeIndex,
-	level,
-	address;
-Token *token;
-Token **tokens;
+#include "headers/symtab.h"
 
 void advanceToken(void)
 {
@@ -46,6 +12,7 @@ void advanceToken(void)
 	// else
 	// 	printf("Token is now %s\n", token->identifier);
 }
+
 int ensureType(TokenType type)
 {
 	if (token == NULL)
@@ -56,6 +23,7 @@ int ensureType(TokenType type)
 		return 0;
 	return 1;
 }
+
 void emit(OP opr, int r, int l, int m)
 {
 	if (codeIndex > CODE_SIZE)
@@ -127,6 +95,7 @@ int lookup(char *name, int *ptx)
 	}
 	return 0;
 }
+
 void printSymbolTable(int size)
 {
 	int i;
@@ -138,6 +107,7 @@ void printSymbolTable(int size)
 	}
 	printf("\n");
 }
+
 void error(int errorNo)
 {
 	switch (errorNo)

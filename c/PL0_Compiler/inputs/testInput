@@ -10,7 +10,7 @@ procedure fact;
     end;
 
 begin
-    n := 3;
+    n := 5;
     call fact; 
     write f
 end.
