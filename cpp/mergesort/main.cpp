@@ -1,3 +1,6 @@
+#include <iostream>
+#include <random>
+#include <ctime>
 #include "headers/mergesort.h"
 
 using namespace std;
@@ -20,6 +23,9 @@ main(){
         arr[i] = rand() % 101 + 1;
     }
     printArr(arr, n);
+
+    cout << "Sorting...\n";
     mergesort(arr, n);
+    
     printArr(arr, n);
 }

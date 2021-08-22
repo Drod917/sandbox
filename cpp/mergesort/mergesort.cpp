@@ -47,7 +47,6 @@ void mergesort(int *arr, int lo, int hi) {
 }
 
 void mergesort(int *arr, int n) {
-    cout << "Sorting..." << endl;
     int lo = 0;
     int hi = n-1;
     mergesort(arr, lo, hi);
