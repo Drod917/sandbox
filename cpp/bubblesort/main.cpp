@@ -1,7 +1,7 @@
 #include <iostream>
 #include <random>
 #include <ctime>
-#include "mergesort.h"
+#include "bubblesort.h"
 
 using namespace std;
 void printArr(int *arr, int n) {
@@ -28,10 +28,10 @@ main(){
 
     time_t start, finish;
     time(&start);
-    mergesort(arr, n);
+    bubblesort(arr, n);
     time(&finish);
-    
+
     //printArr(arr, n);
 
-    cout << difftime(finish, start) << " seconds to sort " << n << " values.\n";
+	cout << difftime(finish, start) << " seconds to sort " << n << " values.\n";
 }
