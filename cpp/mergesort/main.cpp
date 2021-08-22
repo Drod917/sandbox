@@ -1,7 +1,7 @@
 #include <iostream>
 #include <random>
 #include <ctime>
-#include "headers/mergesort.h"
+#include "mergesort.h"
 
 using namespace std;
 void printArr(int *arr, int n) {

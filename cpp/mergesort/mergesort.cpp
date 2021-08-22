@@ -1,6 +1,3 @@
-#include "headers/mergesort.h"
-
-using namespace std;
 void merge(int *arr, int lo, int mid, int hi) {
     int i, j, k, l_sz, r_sz;
 
